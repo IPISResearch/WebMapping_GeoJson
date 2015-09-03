@@ -1,0 +1,51 @@
+<script id="incidentPopup" type="text/html">
+    <div class="popup">
+        <h3>Incident</h3>
+        <table>
+            <tr>
+                <th>Type</th>
+                <td>{{{IncidentType}}}</td>
+            </tr>
+            <tr>
+                <th>Date</th>
+                <td>{{{formattedDate}}}</td>
+            </tr>
+            <tr>
+                <th>Location</th>
+                <td>{{{LOCATION}}}</td>
+            </tr>
+
+            <tr>
+                <th>Actor(s)</th>
+                <td>{{{ACTOR1}}}
+                    {{#ACTOR2}}
+                    <br>{{{ACTOR2}}}
+                    {{/ACTOR2}}
+                </td>
+            </tr>
+
+            {{#NOTES}}
+            <tr>
+                <th>Notes</th>
+                <td class="remarks"><div class="{{scrollable}}">{{{NOTES}}}</div></td>
+            </tr>
+            {{/NOTES}}
+            <tr>
+                <th>Source</th>
+                <td class="source">{{{SOURCE}}}</td>
+            </tr>
+        </table>
+    </div>
+</script>
+
+
+
+
+
+
+
+
+
+
+
+

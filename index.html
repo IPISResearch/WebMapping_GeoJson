@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=utf-8 />
+    <title>IPIS Map</title>
+
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
+
+    <script src='script/external/mapbox.js'></script>
+    <script type="text/javascript" src="script/external/cluster/leaflet.markercluster-src.js"></script>
+
+    <script type="text/javascript" src="script/external/jquery.min.js"></script>
+    <script type="text/javascript" src="script/mustache.js"></script>
+
+    <script type="text/javascript" src="script/util.js"></script>
+    <script type="text/javascript" src="script/color.js"></script>
+    <script type="text/javascript" src="script/enum.js"></script>
+    <script type="text/javascript" src="script/main.js?v14"></script>
+    <script type="text/javascript" src="script/mapService.js?v14"></script>
+    <script type="text/javascript" src="script/searchService.js?v14"></script>
+    <script type="text/javascript" src="script/ui.js?v14"></script>
+
+
+    <link href='//api.tiles.mapbox.com/mapbox.js/v1.6.1/mapbox.css' rel='stylesheet' />
+    <link href='script/external/cluster/MarkerCluster.css' rel='stylesheet' />
+    <link href='script/external/cluster/MarkerCluster.Default.css' rel='stylesheet' />
+    <link href='style/main.css?v14' rel='stylesheet' />
+
+    <!--[if lte IE 8]>
+    <link href='http://api.tiles.mapbox.com/mapbox.js/v1.6.1/mapbox.ie.css' rel='stylesheet' >
+    <![endif]-->
+
+</head>
+<body>
+<div id="login" class="hidden">
+    <div id="loginpanel">
+        This is a dummy login screen<br>
+        The password to access this map is "1234"<br><br>
+        Please enter the password
+        <input type="password" id="password" class="inputbox">
+        <input type="button" value="Login" class="button" id="loginbutton">
+    </div>
+</div>
+<div id="mapUI" class="hidden">
+    <div id='map'></div>
+    <div id='searchbox'>
+        <a class="control-search" href="#">
+            Search
+        </a>
+        <div id="searchpanel">
+            <div class="searchinput"><form id="searchForm"><input type="text" placeholder="Search"></form></div>
+            <div id="searchresults">
+            </div>
+        </div>
+    </div>
+
+    <div id="infobutton"></div>
+    <div id="infobox">
+        <a class="leaflet-popup-close-button" href="#" id="infolayer">×</a>
+        <div id="infoScroller">
+            <div id="infoContent" class="empty"></div>
+        </div>
+    </div>
+
+    <div id="layersbutton"></div>
+    <div id="layers">
+        <a class="leaflet-popup-close-button" href="#" id="closelayer">×</a>
+        <div id="layersScroll">
+            <div id="layersContainer">
+                <h2>Base layers</h2>
+                <div class="mainlayergroup">
+                    <div class="baselayer" id="satelite">
+                        <div class="inlinemapicon satelite"></div>
+                        Satelite</div>
+                    <div class="baselayer" id="terrain">
+                        <div class="inlinemapicon terrain"></div>
+                        Terrain</div>
+                    <div class="baselayer" id="none">
+                        <div class="inlinemapicon none"></div>
+                        None</div>
+                </div>
+                <br>
+                <h2>Incidents</h2>
+                <div class="mainlayergroup">
+                    <div class="layergroup map_incidents">
+                        <div id="timefilter"></div>
+                        <div id="incidentsOptions">
+                            <div class="command" id="listIncidents"> Show as <b>list</b></div>
+                        </div>
+                        <div class="layerlisttitle datalayer hidden" id="incidents">Incidents</div>
+                        <div class="layerlist" id="incidentsList" data-layer="incidents">
+                            <div class="datafilter persistantfilter" data-filterId="1" data-filter="IncidentType" data-value="1" id="incidents_1">Type 1</div>
+                            <div class="datafilter persistantfilter" data-filterId="2" data-filter="IncidentType" data-value="2" id="incidents_2">Type 2</div>
+                            <div class="datafilter persistantfilter" data-filterId="3" data-filter="IncidentType" data-value="3" id="incidents_3">Type 3</div>
+                            <div class="datafilter persistantfilter" data-filterId="4" data-filter="IncidentType" data-value="4" id="incidents_4">Type 4</div>
+                            <div class="datafilter persistantfilter" data-filterId="5" data-filter="IncidentType" data-value="5" id="incidents_5">Type 5</div>
+                            <div class="datafilter persistantfilter" data-filterId="10" data-filter="IncidentType" data-value="Other" id="incidents_other">Other</div>
+                        </div>
+
+                    </div>
+                </div>
+                <h2>Geographical</h2>
+                <div class="mainlayergroup">
+                    <div class="datalayer" id="borders">Borders</div>
+                    <div class="datalayer" id="lakes">Lakes</div>
+                    <div class="datalayer" id="rail">Railroads</div>
+                </div>
+
+                <br>
+
+                <div style="text-align: right"> <a href="javascript://;" id="disclaimerbutton">Read Me - Disclaimer</a></div>
+                <br>
+            </div>
+        </div>
+    </div>
+    <div id="datalist" class="hidden">
+        <a class="leaflet-popup-close-button" href="#" id="closeDataList">×</a>
+        <div id="dataListScroll">
+            <div id="dataListContainer">
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
