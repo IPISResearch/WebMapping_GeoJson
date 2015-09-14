@@ -2,8 +2,8 @@ var MapService = (function() {
 
     // starting point for map
     var mapCoordinates = {
-        x: -0.65,
-        y: 22,
+        x: -3,
+        y: 28,
         zoom: 6
     };
 
@@ -14,6 +14,7 @@ var MapService = (function() {
 
     var hasLayerPreset = false;
     var hasFilterPreset = false;
+    var popupModus = "instant";
 
     var hash = document.location.hash.substr(1);
     var updateHashTimeout;
@@ -51,38 +52,56 @@ var MapService = (function() {
      */
 
         var layers = {
-            incidents:{
+            mines:{
                 id: 1,
-                name: "incidents",
+                name: "mines",
                 visible: true,
-                url: "data/incidents.geojson",
-                iconType: ICONTYPE.INCIDENT,
-                legend_prefix: "incidents_",
-                legend_id: 'IncidentType',
-                popupTemplate: "incidentPopup",
+                url: Config.getIPISAPIurl("cod/mines"),
+                iconType: ICONTYPE.CUSTOMMINE,
+                legend_prefix: "mineral_",
+                legend_id: 'mineral',
+                popupTemplate: "minesPopup",
+                popupUrl: function(p){return Config.getIPISAPIurl("cod/mine/" + p.id);},
                 onPopup: function(p){
-                    if (p.NOTES.length > 300){
+                    /*if (p.NOTES.length > 300){
                         p.scrollable = "scrollable";
                     }else{
                         p.scrollable = "";
                     }
                     p.formattedDate = formatDate(p.Date);
+                    */
                     return p;
                 },
-                checkForDuplicatesIn: ['incidents'],
+                hoverTemplate: "minesHoverPopup",
+                checkForDuplicatesIn: ['mines'],
                 showClusters: false,
-                hasPresetFilters:true,
-                onShowHide : function(isVisible){
-                    UI.initRenderTimeChart(500);
+                hasPresetFilters:true
+            },
+            sellingpoints:{
+                id: 2,
+                name: "sellingpoints",
+                visible: false,
+                url: Config.getIPISAPIurl("cod/sellingpoints"),
+                iconType: ICONTYPE.SELLINGPOINT,
+                popupTemplate: "pdvPopup",
+                popupUrl: function(p){return Config.getIPISAPIurl("cod/sellingpoint/" + p.id);},
+                onPopup: function(p){
+                    /*if (p.NOTES.length > 300){
+                     p.scrollable = "scrollable";
+                     }else{
+                     p.scrollable = "";
+                     }
+                     p.formattedDate = formatDate(p.Date);
+                     */
+                    return p;
                 },
-                onFilter : function(){
-                    //updateCluster();
-                    UI.initRenderTimeChart(100);
-                },
-                additionalFilter : function(f){ return UI.filterTimeChart(f) && UI.filterAdditionalOptions(f)}
+                hoverTemplate: "pdvHoverPopup",
+                checkForDuplicatesIn: ['sellingpoints'],
+                showClusters: false,
+                hasPresetFilters:false
             },
             lakes: {
-                id: 2,
+                id: 3,
                 name: "lakes",
                 visible: false,
                 url: "data/geo/lakes.geojson",
@@ -91,20 +110,26 @@ var MapService = (function() {
                 ignoreInUrl: true
 
             },
-            borders: {
-                id: 3,
-                name: "borders",
-                visible: false,
-                url: "data/geo/stateBorders.geojson",
-                zIndex : 1
-            },
-            rail: {
+            borders:{
                 id: 4,
-                name: "rail",
+                name: "borders",
+                mapBoxId: "ipisresearch.DRC_borders",
+                visible: true
+            },
+            places:{
+                id: 5,
+                name: "places",
+                mapBoxId: "ipisresearch.fe4df64e",
+                visible: true
+            },
+            armyPositions: {
+                id: 6,
+                name: "armyPositions",
                 visible: false,
-                url: "data/geo/railRoads.geojson",
-                lineType: LINETYPE.RAILROAD,
-                zIndex : 2
+                url: "data/Groupesarmes_IPISv2.geojson",
+                fillType: FILLTYPE.ARMED_GROUPS,
+                zIndex : 10,
+                popupTemplate: "armedGroupPopup"
             }
         };
 
@@ -125,11 +150,12 @@ everything should be generic
 
 
             baseLayer.satelite = L.mapbox.tileLayer(MAPBOX_BASELAYER.satelite_no_places);
-            baseLayer.terrain = L.mapbox.tileLayer(MAPBOX_BASELAYER.terrain_places);
+            baseLayer.terrain = L.mapbox.tileLayer(MAPBOX_BASELAYER.terrain_no_places);
+            baseLayer.streets = L.mapbox.tileLayer(MAPBOX_BASELAYER.terrain_places);
 
             baseLayer.satelite.setZIndex(1);
             baseLayer.terrain.setZIndex(2);
-
+            baseLayer.streets.setZIndex(3);
 
             // add baselayers
             var hasBaselayer = false;
@@ -143,7 +169,10 @@ everything should be generic
                     }
                 }
             }
-            if (!hasBaselayer)  $("#none").addClass("active");
+
+            if (!hasBaselayer) {
+                UI.setBaseLayerStyle(false);
+            }
 
             L.control.scale().addTo(map);
 
@@ -168,6 +197,10 @@ everything should be generic
 
             hasLayerPreset = loadPreset;
             hasFilterPreset = loadFilterPreset;
+
+            // ignore until this works with autogenerated database filters
+            loadPreset = false;
+            loadFilterPreset = false;
 
             if (loadPreset){
                 // clear UI
@@ -238,6 +271,7 @@ everything should be generic
                     resetDuplicateMarkers();
                 }
                 UI.hideInfo(true);
+                //popupModus = 'instant';
             });
 
             map.on("zoomstart",function(){
@@ -253,6 +287,10 @@ everything should be generic
 
             map.on("moveend",function(){
                 updateHash();
+            });
+
+            map.on('popupclose',function(e){
+                popupModus = 'instant';
             });
 
      };
@@ -312,12 +350,6 @@ everything should be generic
                     if (properties.fillType)        properties.style = getFillStyle(p,properties.fillType);
                     if (t.type != "Point" && properties.style)           marker.setStyle(properties.style);
                     if (properties.popupTemplate){
-                        if (properties.onPopup){
-                            p = properties.onPopup(p);
-                        }
-                        var popupHTML = Mustache.render(Templates[properties.popupTemplate],p);
-                        if (properties.popupPostProcessor) popupHTML = properties.popupPostProcessor(popupHTML);
-
                         if (properties.checkForDuplicatesIn){
                             // custom onclick to check for markers on the same geo position
                             marker.on("click touch",function(){
@@ -326,7 +358,7 @@ everything should be generic
 
                                 if (co.originalLat){
                                     // this is a duplicate marker that was previously split
-                                    marker.bindPopup(popupHTML).openPopup();
+                                    getMarkerPopup(marker,properties,true);
                                 }else{
                                     // check for markers on same coordinates
                                     if (map.hasActiveDuplicateMarkers) resetDuplicateMarkers();
@@ -349,17 +381,30 @@ everything should be generic
                                     }else{
                                         // no duplicates
                                         map.hasActiveDuplicateMarkers = false;
-                                        marker.unbindPopup();
-                                        marker.bindPopup(popupHTML).openPopup();
+                                        getMarkerPopup(marker,properties,true);
                                     }
                                 }
-
                             })
 
                         }else{
-                            marker.bindPopup(popupHTML);
+                            getMarkerPopup(marker,properties,false);
                         }
 
+                    }
+
+                    if (properties.hoverTemplate){
+                        marker.on('mouseover',function(e) {
+                            if (popupModus == "instant"){
+                                var popupHTML = Mustache.render(Templates[properties.hoverTemplate],p);
+                                marker.unbindPopup();
+                                marker.bindPopup(popupHTML).openPopup();
+                            }
+
+                        });
+
+                        marker.on('mouseout',function(e) {
+                            if (popupModus == "instant") marker.closePopup();
+                        });
                     }
 
                     if (properties.legend_prefix){
@@ -409,28 +454,113 @@ everything should be generic
 
             if (iconType == ICONTYPE.MINE){
                 size = 'mini';
-                if (properties.Mineral == "Gold"){
+                if (properties.mineral == "Gold"){
                     symbol = 'star';
                     color = 'F9FF4E';
                 }
-                if (properties.Mineral == "Diamond"){
+                if (properties.mineral == "Diamond"){
                     symbol = 'triangle';
                     color = '1CB1DD';
                 }
-                if (properties.Mineral == "Diamond & gold"){
+                if (properties.mineral == "Diamond & gold"){
                     symbol = 'triangle-stroked';
                     color = '1fdd78';
                 }
-                if (properties.Mineral == "Gold & diamond"){
+                if (properties.mineral == "Gold & diamond"){
                     symbol = 'star-stroked';
                     color = '79dd1e';
                 }
 
                 if (properties.Remarks){
-                    size = 'small';
+                    //size = 'small';
                 }else{
-                    symbol = '';
-                    customClassName = "transparent"
+                    //symbol = '';
+                    //customClassName = "transparent"
+                }
+            }
+
+            if (iconType == ICONTYPE.CUSTOMMINE){
+
+                var validation = properties.qualification;
+                if (validation == null) validation="";
+                if (validation == 'grey') validation="";
+
+                if (validation == "") {
+                    symbol = "triangle-stroked";
+                }else {
+                    symbol = "triangle";
+                    type = "custom";
+
+                    if (validation.indexOf('green') > -1) iconColor = "green";
+                    if (validation.indexOf('yellow') > -1) iconColor = "yellow";
+                    if (validation.indexOf('red') > -1) iconColor = "red";
+                }
+
+                switch(properties.mineral){
+                    case "amethyst": color = '9966CB'; break;
+                    case "gold": color = 'DAA520'; break;
+                    case "wolframite": color = '8B4513'; break;
+                    case "coltan": color = '1E90FF'; break;
+                    case "monazite": color = 'B0C4DE'; break;
+                    case "tourmaline": color = '006600'; break;
+                    case "diamond": color = 'FFDEAD'; break;
+                    case "cassiterite": color = 'FFA07A'; break;
+                    case "copper": color = 'C87533'; break;
+                    case "zzz_other": color = '000000'; break;
+                }
+
+                if (properties.workers > 499) {
+                    size = "large";
+                }
+
+                if (properties.workers < 50){
+                    size = "small";
+                }
+
+                if (type == "custom"){
+                    url = "images/pins/pin-" + size.substr(0,1) + "-" + symbol + "-" + color;
+
+                    if (iconColor != '') url += "-" + iconColor;
+
+                    url += ".png";
+
+                    var sizeArray;
+
+                    if (size == "small"){
+                        sizeArray = [20, 50];
+                        anchor = [10, 25];
+                        popupAnchor = [0, -25];
+                    }
+                    if (size == "medium"){
+                        sizeArray = [30, 70];
+                        anchor = [15, 35];
+                        popupAnchor = [0, -35];
+                    }
+                    if (size == "large"){
+                        sizeArray = [35, 90];
+                        anchor = [17, 45];
+                        popupAnchor = [0, -45];
+                    }
+                }
+
+            }
+
+            if (iconType == ICONTYPE.SELLINGPOINT){
+                size = 'small';
+                symbol = 'warehouse';
+                color = '888888';
+
+                switch(properties.mineral){
+                    case "amethyst": color = '9966CB'; break;
+                    case "gold": color = 'DAA520'; break;
+                    case "wolframite": color = '8B4513'; break;
+                    case "coltan": color = '1E90FF'; break;
+                    case "monazite": color = 'B0C4DE'; break;
+                    case "tourmaline": color = '006600'; break;
+                    case "diamond": color = 'FFDEAD'; break;
+                    case "cassiterite": color = 'FFA07A'; break;
+                    case "copper": color = 'C87533'; break;
+                    case "zzz_other": color = '666666'; break;
                 }
             }
 
@@ -739,6 +869,13 @@ everything should be generic
 
             }
 
+            if (fillType== FILLTYPE.ARMED_GROUPS){
+                switch (properties.Type){
+                    case "n": color = "#3aae67"; break;
+                    case "e": color = "#ae730b"; break;
+                }
+            }
+
             if (fillType== FILLTYPE.LAKE){
                 color = "#3E99D4";
                 opacity = 0.7;
@@ -758,6 +895,48 @@ everything should be generic
             }
 
         }
+
+        var getMarkerPopup = function(marker,datasetProperties,andOpen){
+            var p = marker.feature.properties;
+            var popupHTML;
+
+            if (datasetProperties.onPopup){
+                p = datasetProperties.onPopup(p);
+            }
+
+            if (datasetProperties.popupUrl){
+                // populate popup from external data
+                popupHTML = Mustache.render(Templates[datasetProperties.popupTemplate + "Loading"],p);
+                marker.unbindPopup().bindPopup(popupHTML);
+                if (andOpen) marker.openPopup();
+
+                popupModus = 'fixed';
+                var url = datasetProperties.popupUrl(p);
+                $.get(url,function(result){
+                    if (result.status == "ok"){
+                        result = result.result[0];
+
+                        if (result.latitude) result.fLatitude = decimalToDegrees(result.latitude,"lat");
+                        if (result.longitude) result.fLongitude = decimalToDegrees(result.longitude,"lon");
+
+                        popupHTML = Mustache.render(Templates[datasetProperties.popupTemplate],result);
+                        marker.unbindPopup().bindPopup(popupHTML);
+                        if (andOpen) marker.openPopup();
+                        popupModus = 'fixed';
+                    }
+                });
+
+            }else{
+                popupHTML = Mustache.render(Templates[datasetProperties.popupTemplate],p);
+                if (datasetProperties.popupPostProcessor) popupHTML = datasetProperties.popupPostProcessor(popupHTML);
+                marker.unbindPopup().bindPopup(popupHTML);
+                if (andOpen) marker.openPopup();
+
+                popupModus = 'fixed';
+            }
+
+
+        };
 
         var duplicatePointsOffsetForZoomLevel = function(zoomLevel){
             // what's this ?
@@ -1007,7 +1186,7 @@ everything should be generic
                     }
                 }
             }
-
+/*
             $(".persistantfilter").each(function(index) {
                 var filterId = this.getAttribute("data-filterId");
                 if (filterId){
@@ -1015,7 +1194,7 @@ everything should be generic
                 }
             });
             if (filterIdString != "") filterIdString = filterIdString.substr(1);
-
+*/
 
 
             var timeFilterElement = $("#timefilter");
@@ -1049,7 +1228,6 @@ everything should be generic
         if (clusterLayer) map.removeLayer(clusterLayer);
         clusterLayer = L.mapbox.featureLayer().addTo(map).setZIndex(100);
 
-        console.error("building cluster");
         var layer = dataset[layerId];
 
         clusterData = {};

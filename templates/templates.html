@@ -39,6 +39,165 @@
 </script>
 
 
+<script id="minesPopup" type="text/html">
+    <div class="popup">
+        <h3>Mine: {{name}}</h3>
+        <table>
+            <tr>
+                <th>Substance(s)</th>
+                <td>{{{mineral1}}} {{{mineral2}}}</td>
+            </tr>
+            <tr>
+                <th>Province</th>
+                <td>{{{province}}} {{{province_old}}}</td>
+            </tr>
+            <tr>
+                <th>Territoire</th>
+                <td>{{{territoire}}}</td>
+            </tr>
+            <tr>
+                <th>Collectivité</th>
+                <td>{{{collectivite}}}</td>
+            </tr>
+            <tr>
+                <th>Groupement</th>
+                <td>{{{groupement}}}</td>
+            </tr>
+            <tr>
+                <th>Village</th>
+                <td>{{{village}}}</td>
+            </tr>
+            <tr>
+                <th>Origin</th>
+                <td>{{{origin}}}</td>
+            </tr>
+            <tr>
+                <th>Source</th>
+                <td class="source">{{{source}}}</td>
+            </tr>
+            <tr>
+                <th>Longitude</th>
+                <td class="source">{{{fLongitude}}}</td>
+            </tr>
+            <tr>
+                <th>Latitude</th>
+                <td class="source">{{{fLatitude}}}</td>
+            </tr>
+        </table>
+    </div>
+</script>
+
+<script id="minesPopupLoading" type="text/html">
+    <div class="popup">
+        <h3>Mine: {{name}}</h3>
+        Chargement ...
+    </div>
+</script>
+
+<script id="minesHoverPopup" type="text/html">
+    <div class="popup">
+        <h3>Site: {{name}}</h3>
+        <table>
+            {{#armedgroup}}
+            <tr>
+                <th>Présence armée constatée:</th>
+                <td>{{{armedgroup}}}</td>
+            </tr>
+            {{/armedgroup}}
+            {{^armedgroup}}
+            <tr>
+                <td>Pas de présence armée constatée</td>
+            </tr>
+            {{/armedgroup}}
+        </table>
+    </div>
+</script>
+
+
+
+<script id="pdvPopup" type="text/html">
+    <div class="popup">
+        <h3>Point de Vente: {{name}}</h3>
+        <table>
+            <tr>
+                <th>Substance(s)</th>
+                <td>{{{mineral1}}} {{{mineral2}}} {{{mineral3}}} {{{mineral4}}}</td>
+            </tr>
+            <tr>
+                <th>Province</th>
+                <td>{{{province}}} {{{province_old}}}</td>
+            </tr>
+            <tr>
+                <th>Territoire</th>
+                <td>{{{territoire}}}</td>
+            </tr>
+            <tr>
+                <th>Collectivité</th>
+                <td>{{{collectivite}}}</td>
+            </tr>
+            <tr>
+                <th>Groupement</th>
+                <td>{{{groupement}}}</td>
+            </tr>
+            <tr>
+                <th>Village</th>
+                <td>{{{village}}}</td>
+            </tr>
+            <tr>
+                <th>Origin</th>
+                <td>{{{origin}}}</td>
+            </tr>
+            <tr>
+                <th>Source</th>
+                <td class="source">{{{source}}}</td>
+            </tr>
+            <tr>
+                <th>Longitude</th>
+                <td class="source">{{{fLongitude}}}</td>
+            </tr>
+            <tr>
+                <th>Latitude</th>
+                <td class="source">{{{fLatitude}}}</td>
+            </tr>
+        </table>
+    </div>
+</script>
+
+<script id="pdvPopupLoading" type="text/html">
+    <div class="popup">
+        <h3>Point de Vente: {{name}}</h3>
+        Chargement ...
+    </div>
+</script>
+
+<script id="pdvHoverPopup" type="text/html">
+    <div class="popup">
+        <h3>Point de Vente: {{name}}</h3>
+        <table>
+            {{#armedgroup}}
+            <tr>
+                <th>Présence armée constatée:</th>
+                <td>{{{armedgroup}}}</td>
+            </tr>
+            {{/armedgroup}}
+            {{^armedgroup}}
+            <tr>
+                <td>Pas de présence armée constatée</td>
+            </tr>
+            {{/armedgroup}}
+        </table>
+    </div>
+</script>
+
+<script id="armedGroupPopup" type="text/html">
+    <div class="popup">
+        <h3>Groupe armé</h3>
+        {{Groupe armé}}
+    </div>
+</script>
+
+
+
 
 
 

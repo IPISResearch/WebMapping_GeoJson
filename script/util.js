@@ -113,8 +113,46 @@ function eraseCookie(name) {
 }
 
 function cleanString(s){
+    if (typeof s == "undefined") s="";
     var cleans = s;
     cleans = cleans.split("(").join("");
     cleans = cleans.split(")").join("");
     return cleans.split(' ').join('_').split('&').join('_').split(',').join('_')
+}
+
+function decimalToDegrees(decimal,LatLong){
+    var sign = 1;
+    if (isNaN(decimal)) decimal=0;
+    if (decimal<0) sign = -1;
+
+    var kwadrantChar = "";
+    if (LatLong){
+        // don't use negative numbers but NSWE
+        if (LatLong == "lat"){
+            kwadrantChar = " N";
+            if (sign<0) kwadrantChar = " S";
+        }
+        if (LatLong == "lon"){
+            kwadrantChar = " E";
+            if (sign<0) kwadrantChar = " W";
+        }
+        sign = 1;
+
+    }
+
+    var decimalAbs = Math.abs(Math.round(decimal * 1000000.));
+    if(decimalAbs > (180 * 1000000)) {
+        // error: Degrees Longitude must be in the range of -180 to 180.
+        decimalAbs=0;
+    }
+
+    var degreeString = ((Math.floor(decimalAbs/1000000) * sign) + '&deg; ' +
+        Math.floor(((decimalAbs/1000000) - Math.floor(decimalAbs/1000000)) * 60)  + '\' ' +
+        (Math.floor(((((decimalAbs/1000000) - Math.floor(decimalAbs/1000000)) * 60) - Math.floor(((decimalAbs/1000000) - Math.floor(decimalAbs/1000000)) * 60)) * 100000) *60/100000 ) + '&quot;') +
+        kwadrantChar;
+
+    degreeString = degreeString.split(".").join(",");
+
+    return degreeString;
+
 }

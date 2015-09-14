@@ -8,15 +8,25 @@ var UI = (function() {
     var timeChartPreset;
     var infoVisible = false;
 
+    var persistantfilter = 1;
+    var layerListFilters = {};
+
     var monthNames = [ "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December" ];
 
+    var initData = function(next){
+        // build legend
+        buildUIFilterListFromUrl(Config.getIPISAPIurl("cod/filterdata"),next);
+    };
+
     var init = function(){
         // init UI events
-        setKeyIncidentFilter(true);
+        //setKeyIncidentFilter(true);
+
+        var container = $("#layers");
 
         // layerSwitcher
-        $(".baselayer").on("click",function(){
+        container.on("click",".baselayer",function(){
             var layerId = this.id;
             if (!$(this).hasClass("active")){
                 var activeLayer = $(".baselayer.active");
@@ -26,14 +36,20 @@ var UI = (function() {
                         map.removeLayer(baseLayer[activeLayer.get(0).id]);
                     }
                 }
-                if (layerId != "none") map.addLayer(baseLayer[layerId]);
+                if (layerId != "none") {
+                    map.addLayer(baseLayer[layerId]);
+                    setBaseLayerStyle(true);
+                }else{
+                    setBaseLayerStyle(false);
+                }
 
                 $(this).addClass("active");
                 MapService.updateHash();
+
             }
         });
 
-        $(".datalayer").on("click",function(){
+        container.on("click",".datalayer",function(){
 
             var layerIds = [];
             var dataLayers = this.getAttribute("data-layers");
@@ -71,7 +87,7 @@ var UI = (function() {
          and contains the property the dataset should be filtered on in
          data-filter and data-value
          */
-        $(".datafilter").on("click",function(){
+        container.on("click",".datafilter",function(){
 
             $(this).toggleClass("inactive");
 
@@ -85,7 +101,7 @@ var UI = (function() {
 
 
 
-        $("#layers").find("h2").on("click",function(){
+        container.find("h2").on("click",function(){
             var layerGroup = $(this).next();
             if (layerGroup.hasClass("mainlayergroup")){
                 $(this).toggleClass("closed");
@@ -231,6 +247,7 @@ var UI = (function() {
         $("#disclaimerbutton").on("click",function(){
             showInfo(true,"fast");
         });
+
     };
 
     function setKeyIncidentFilter(active){
@@ -356,8 +373,9 @@ var UI = (function() {
 
     function updateLayerListFilter(layerList){
         var layerId = layerList.data("layer");
+        var layerListID = layerList.attr("id");
         if (layerId && dataset[layerId]){
-            var filterList = [];
+            var filterList =  [];
             var hasFilter = false;
             layerList.find(".datafilter").each(function(index){
                 if ($(this).hasClass("inactive")){
@@ -370,34 +388,39 @@ var UI = (function() {
                 }
             });
 
-
-
-            // check for filter Chart
-            var additionalFilter = undefined;
-            var layerData = MapService.getLayerData(layerId);
-            if (layerData && layerData.additionalFilter) additionalFilter = layerData.additionalFilter;
-
+            layerListFilters[layerId] = layerListFilters[layerId] || {};
             if (hasFilter){
-                dataset[layerId].setFilter(function(f){
+                layerListFilters[layerId][layerListID] = function(f){
                     var result = false;
                     for (var i = 0, len = filterList.length; i<len;i++){
                         var filter = filterList[i];
                         if (f.properties[filter.property] == filter.value) result = true;
                     }
-
-                    if (additionalFilter) result = result && additionalFilter(f);
-
                     return result;
-                });
+                }
             }else{
-                dataset[layerId].setFilter(function(f){
-                    var result = true;
-                    if (additionalFilter) result = result && additionalFilter(f);
-                    return result;
-                });
+                layerListFilters[layerId][layerListID] = false;
             }
 
+
+
+            // check for filter Chart
             var layerData = MapService.getLayerData(layerId);
+            if (layerData && layerData.additionalFilter) {
+                layerListFilters[layerId]["additional"] = layerData.additionalFilter;
+            }
+
+            dataset[layerId].setFilter(function(f){
+                var result = true;
+                for (var filterID in layerListFilters[layerId]){
+                    if (result){
+                        var filterFunction = layerListFilters[layerId][filterID];
+                        if (filterFunction) result = result && filterFunction(f);
+                    }
+                }
+                return result;
+            });
+
             if (layerData && layerData.onFilter) layerData.onFilter();
             MapService.updateHash();
         }else{
@@ -548,8 +571,65 @@ var UI = (function() {
     }
 
 
+    // build a list of filter items of a certain field in a dataset
+    // the parent DOM element should have a data-layer attribute containing the datalayer to filter
+    // when persistant=true then the state of the filter will be included in the url and restored on a page refresh
+
+    function buildUIFilterList(parentId,fieldname,persistant,legend_prefix,label_prefix,dataSet){
+        var container = document.getElementById(parentId);
+
+        for (var i=0, len=dataSet.length; i<len; i++){
+            var data = dataSet[i];
+            var item = document.createElement("div");
+            item.className = "datafilter";
+            if (persistant) {
+                item.className = "datafilter persistantfilter";
+                item.setAttribute('data-filterId', persistantfilter);
+                persistantfilter++;
+            }
+            item.setAttribute('data-filter', fieldname);
+            item.setAttribute('data-value', data);
+            item.id=legend_prefix + "_" + cleanString(data);
+
+            item.innerHTML = translations[label_prefix + data] || label_prefix + data;
+
+
+
+            container.appendChild(item);
+        }
+
+
+    }
+
+    function buildUIFilterListFromUrl(url,next){
+        $.get(url,function(result){
+            if (result.status == "ok"){
+                result = result.result;
+                buildUIFilterList("mineralList","mineral",true,"mineral_","",result.minerals);
+                buildUIFilterList("yearsList","year",false,"year_","",result.years);
+                buildUIFilterList("armyList","armygroup",false,"armygroup_","army",result.armygroups);
+                buildUIFilterList("workerList","workergroup",false,"workergroup_","workergroup",result.workergroups);
+                if (next) next();
+            }
+        });
+    }
+
+
+    function setBaseLayerStyle(hasBaseLayer){
+        if (hasBaseLayer){
+            $("#none").removeClass("active");
+            $("#map").removeClass("clear");
+            MapService.hideLayers(["lakes"]);
+        }else{
+            $("#none").addClass("active");
+            $("#map").addClass("clear");
+            MapService.showLayers(["lakes"]);
+        }
+    }
+
     return{
         init: init,
+        initData: initData,
         initRenderTimeChart : initRenderTimeChart,
         filterTimeChart : filterTimeChart,
         filterAdditionalOptions : filterAdditionalOptions,
@@ -560,7 +640,8 @@ var UI = (function() {
         updateMarkerList : updateMarkerList,
         showLogin : showLogin,
         hideLogin : hideLogin,
-        showMap : showMap
+        showMap : showMap,
+        setBaseLayerStyle: setBaseLayerStyle
     }
 
 }());
