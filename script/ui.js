@@ -97,10 +97,6 @@ var UI = (function() {
             }
         });
 
-
-
-
-
         container.find("h2").on("click",function(){
             var layerGroup = $(this).next();
             if (layerGroup.hasClass("mainlayergroup")){
@@ -248,6 +244,14 @@ var UI = (function() {
             showInfo(true,"fast");
         });
 
+
+
+        $(document).on("click",".navhorizontal .navitem",function(){
+            $(this).siblings(".navitem").removeClass("active");
+            $(this).addClass("active");
+            POPUP.renderPopupTab(this.id);
+        });
+
     };
 
     function setKeyIncidentFilter(active){
@@ -318,7 +322,7 @@ var UI = (function() {
         $("#infobox").stop().show(speed);
 
         if ($("#infoContent").hasClass("empty")){
-            $("#infoContent").load("templates/disclaimer.html?v" + version,"",function(){
+            $("#infoContent").load("templates/" + Config.diclaimerURL + "?v" + version,"",function(){
                 $("#infoContent").removeClass("empty");
             });
         }
@@ -626,6 +630,7 @@ var UI = (function() {
             MapService.showLayers(["lakes"]);
         }
     }
+
 
     return{
         init: init,

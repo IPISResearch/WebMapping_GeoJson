@@ -37,6 +37,8 @@ var MapService = (function() {
     var clusterLayer;
     var clusterData = {};
 
+    var currentPopupData;
+
 
     /*
 
@@ -61,17 +63,7 @@ var MapService = (function() {
                 legend_prefix: "mineral_",
                 legend_id: 'mineral',
                 popupTemplate: "minesPopup",
-                popupUrl: function(p){return Config.getIPISAPIurl("cod/mine/" + p.id);},
-                onPopup: function(p){
-                    /*if (p.NOTES.length > 300){
-                        p.scrollable = "scrollable";
-                    }else{
-                        p.scrollable = "";
-                    }
-                    p.formattedDate = formatDate(p.Date);
-                    */
-                    return p;
-                },
+                popupUrl: function(p){return Config.getIPISAPIurl("cod/mine/" + p.id + "/info");},
                 hoverTemplate: "minesHoverPopup",
                 checkForDuplicatesIn: ['mines'],
                 showClusters: false,
@@ -84,17 +76,7 @@ var MapService = (function() {
                 url: Config.getIPISAPIurl("cod/sellingpoints"),
                 iconType: ICONTYPE.SELLINGPOINT,
                 popupTemplate: "pdvPopup",
-                popupUrl: function(p){return Config.getIPISAPIurl("cod/sellingpoint/" + p.id);},
-                onPopup: function(p){
-                    /*if (p.NOTES.length > 300){
-                     p.scrollable = "scrollable";
-                     }else{
-                     p.scrollable = "";
-                     }
-                     p.formattedDate = formatDate(p.Date);
-                     */
-                    return p;
-                },
+                popupUrl: function(p){return Config.getIPISAPIurl("cod/sellingpoint/" + p.id + "/info");},
                 hoverTemplate: "pdvHoverPopup",
                 checkForDuplicatesIn: ['sellingpoints'],
                 showClusters: false,
@@ -130,6 +112,15 @@ var MapService = (function() {
                 fillType: FILLTYPE.ARMED_GROUPS,
                 zIndex : 10,
                 popupTemplate: "armedGroupPopup"
+            },
+            concessions: {
+                id: 7,
+                name: "concessions",
+                visible: false,
+                url: "data/titres.geojson",
+                fillType: FILLTYPE.CONCESSION,
+                zIndex : 10,
+                popupTemplate: "concessionPopup"
             }
         };
 
@@ -153,6 +144,8 @@ everything should be generic
             baseLayer.terrain = L.mapbox.tileLayer(MAPBOX_BASELAYER.terrain_no_places);
             baseLayer.streets = L.mapbox.tileLayer(MAPBOX_BASELAYER.terrain_places);
 
+
+
             baseLayer.satelite.setZIndex(1);
             baseLayer.terrain.setZIndex(2);
             baseLayer.streets.setZIndex(3);
@@ -175,6 +168,7 @@ everything should be generic
             }
 
             L.control.scale().addTo(map);
+
 
 
             /* datalayers */
@@ -220,7 +214,6 @@ everything should be generic
                     }
                 });
             }
-
 
             for (var key in layers) {
 
@@ -883,6 +876,36 @@ everything should be generic
             }
 
 
+            if (fillType== FILLTYPE.CONCESSION){
+                switch (properties.type){
+                    case "PR (AS)":
+                    case "PR (PP)":
+                    case "ARPC (Car)":
+                    case "ARPC (Min)":
+                        color = "#43b7ff";
+                        break;
+                    case "AECP (Car)":
+                    case "AECP (Min)":
+                    case "AECT (Car)":
+                    case "AECT (Min)":
+                    case "PE":
+                    case "PEPM":
+                    case "PER":
+                        color = "#36ae71";
+                        break;
+                    case "ZEA":
+                        color = "#9f2bae" ;
+                        break;
+                    case "ZIN":
+                        color = "#ae000e" ;
+                        break;
+                    default:
+                        color = "#FF999e" ;
+                }
+
+            }
+
+
             return {
                     color: color,
                     opacity: 0.8,
@@ -914,22 +937,92 @@ everything should be generic
                 var url = datasetProperties.popupUrl(p);
                 $.get(url,function(result){
                     if (result.status == "ok"){
-                        result = result.result[0];
+                        var i,len;
+                        result = result.result;
+                        if (result){
 
-                        if (result.latitude) result.fLatitude = decimalToDegrees(result.latitude,"lat");
-                        if (result.longitude) result.fLongitude = decimalToDegrees(result.longitude,"lon");
+                            if (result.latitude) result.fLatitude = decimalToDegrees(result.latitude,"lat");
+                            if (result.longitude) result.fLongitude = decimalToDegrees(result.longitude,"lon");
 
-                        popupHTML = Mustache.render(Templates[datasetProperties.popupTemplate],result);
-                        marker.unbindPopup().bindPopup(popupHTML);
-                        if (andOpen) marker.openPopup();
-                        popupModus = 'fixed';
+
+                            result.consolidated = result.consolidated || {};
+
+                            // visit dates
+                            if (result.consolidated.visit_collection){
+                                var v = [];
+                                var visits = result.consolidated.visit_collection.split(",");
+                                for (i=0, len=visits.length;i<len;i++){
+                                    var visit = visits[i];
+                                    if (visit.indexOf(":")>0){
+                                        visit=visit.replace(" 00:00:00+00","");
+                                        console.error(visit);
+                                        var parts = visit.split(":");
+                                        if (parts.length>0){
+                                            if (parts[1].indexOf("-")>0){
+                                                // format date
+                                                var dateparts = parts[1].split("-");
+                                                parts[1] = dateparts[2] + "/" + dateparts[1] + "/" + dateparts[0];
+                                            }
+                                            v.push(parts[1]);
+                                        }
+                                    }
+                                }
+                                result.consolidated.visits = v.join("<br>");
+                            }
+
+                            if (result.consolidated.numberofworkers_collection){
+                                result.consolidated.workers = result.consolidated.numberofworkers_collection.split(",").join("<br>").split(":").join(": ");
+                            }
+
+                            if (result.consolidated.numberofpits_collection){
+                                result.consolidated.pits = result.consolidated.numberofpits_collection.split(",").join("<br>").split(":").join(": ");
+                            }
+
+                            var q = "Aucune";
+                            if (result.consolidated.qualification){
+                                switch(result.consolidated.qualification){
+                                    case "red":
+                                        q = "Rouge";
+                                        break;
+                                    case "green":
+                                        q = "Vert";
+                                        break;
+                                    case "yellow":
+                                        q = "Jaune";
+                                        break;
+                                }
+                            }
+                            result.consolidated.qualification = q;
+
+                            currentPopupData = result;
+
+
+                            popupHTML = Mustache.render(Templates[datasetProperties.popupTemplate],result);
+                            marker.closePopup();
+                            marker.unbindPopup();
+                            //marker.bindPopup(popupHTML);
+                            //if (andOpen) marker.openPopup({maxWidth: 600});
+
+                            var popup = L.popup({maxWidth: 700})
+                                .setLatLng(marker.getLatLng())
+                                .setContent(popupHTML);
+
+                            if (andOpen) popup.openOn(map);
+                            popupModus = 'fixed';
+
+                            POPUP.renderPopupTab("tab_armed_presence");
+
+                        }
+
+
                     }
                 });
 
             }else{
                 popupHTML = Mustache.render(Templates[datasetProperties.popupTemplate],p);
                 if (datasetProperties.popupPostProcessor) popupHTML = datasetProperties.popupPostProcessor(popupHTML);
-                marker.unbindPopup().bindPopup(popupHTML);
+                //marker.unbindPopup().bindPopup(popupHTML);
+                marker.bindPopup(popupHTML);
                 if (andOpen) marker.openPopup();
 
                 popupModus = 'fixed';
@@ -1378,7 +1471,6 @@ everything should be generic
         console.error(distinct);
     }
 
-
     // utility function to generate a piece to the UI for filtering layers
     function generateFilterCode(datasetId,field){
 
@@ -1448,6 +1540,10 @@ everything should be generic
         buildCluster("incidents");
     }
 
+    function getCurrentPopupData(){
+        return currentPopupData;
+    }
+
         return{
             init: init,
             showLayers: showLayers,
@@ -1461,6 +1557,7 @@ everything should be generic
             listDistinctFields: listDistinctFields,
             generateFilterCode: generateFilterCode,
             listLayer: listLayer,
-            updateCluster: updateCluster
+            updateCluster: updateCluster,
+            getCurrentPopupData: getCurrentPopupData
         }
 }());

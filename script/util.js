@@ -156,3 +156,8 @@ function decimalToDegrees(decimal,LatLong){
     return degreeString;
 
 }
+
+
+String.prototype.replaceAll = function(target, replacement) {
+    return this.split(target).join(replacement);
+};

@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset=utf-8 />
-    <title>IPIS Map</title>
+    <title>SAESSCAM Map</title>
 
     <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
 
@@ -36,7 +36,7 @@
 <body>
 <div id="login" class="hidden">
     <div id="loginpanel">
-        IPIS DRC map V4<br>
+        SAESSCAM map V4<br>
         <br>
         S'il vous plaît entrez le mot de passe
         <input type="password" id="password" class="inputbox">
@@ -73,10 +73,7 @@
             <div id="layersContainer">
 
                 <div id="logo">
-                    <a href="http://www.cami.cd"><img src="images/camilogo.png?v2" border="0" width="62"></a>
-                    <img src="images/drclogo.png" border="0" width="62">
                     <a href="http://www.saesscam.cd"><img src="images/saesscamlogo.png?v2" border="0" width="75"></a>
-                    <a href="http://ipisresearch.be"><img src="images/ipislogo.png?v2" border="0" width="45"></a>
                 </div>
                 <h2>Carte de base</h2>
                 <div class="mainlayergroup">
@@ -124,8 +121,8 @@
                         <div class="layerlist" id="mineralList" data-layer="mines"></div>
                     </div>
                 </div>
-                <h2>Présence armée</h2>
-                <div class="mainlayergroup">
+                <h2 class="hidden">Présence armée</h2>
+                <div class="mainlayergroup hidden">
                     <div class="layergroup">
                         <div class="layerlist" id="armyList" data-layer="mines"></div>
                     </div>
@@ -161,6 +158,9 @@
                     </div>
                 </div>
 
+
+
+
                 <h2>Titres</h2>
                 <div class="mainlayergroup">
                     <div class="layerlisttitle datalayer multiline" id="concessions">Titres miniers</div>
@@ -172,8 +172,9 @@
                     </div>
                 </div>
 
-                <h2>Zones</h2>
-                <div class="mainlayergroup">
+
+                <h2 class="hidden">Zones</h2>
+                <div class="mainlayergroup hidden">
                     <div class="layerlisttitle datalayer multiline" id="armyPositions">Groupes armés autour des sites miniers (IPIS 2013-14)</div>
                     <div class="layerlist inactive" data-layer="armyPositions" id="armyPositionsList">
                         <div class="datafilter" data-filter="Type" data-value="n" id="armyPositions_n">Groupe armé national</div>
@@ -198,46 +199,16 @@
 
 
                         <h3>Contacts</h3>
-                        <h4>IPIS</h4>
+                        <h4>SAESSCAM</h4>
                         <div style="padding-left:32px">
-                            <ul>
-                                <li>
-                                    Chercheurs:
-                                    <a href="http://ipisresearch.be/team-member/yannick-weyns/">Yannick Weyns</a>,
-                                    <a href="http://ipisresearch.be/team-member/filip-hilgert/">Filip Hilgert</a>
-                                    et <a href="http://ipisresearch.be/team-member/john-doe/">Lotte Hoex</a>
-                                </li>
-                                <li>
-                                    Liaison: <a href="http://ipisresearch.be/team-member/zacharie-bulakali-ntakobajia/">Zacharie Bulakali</a>
-                                </li>
-                                <li>
-                                    Cartographie: <a href="http://ipisresearch.be/team-member/filip-hilgert/">Filip Hilgert</a>, <a href="http://ipisresearch.be/team-member/alexandre-jaillon/">Alexandre Jaillon</a>, Jean-Laurent Martin et
-                                    Stef Verheijen (web mapping)
-                                </li>
-                            </ul>
+                            ....
+                            <br><br>
                         </div>
 
-                        <h4>RD Congo</h4>
-                        <div style="padding-left:32px">
-                            <ul>
-                                <li><a href="http://www.cami.cd">Cadastre Minier</a></li>
-                                <li><a href="http://www.saesscam.cd">SAESSCAM</a></li>
-                                <li><a href="http://mines-rdc.cd/fr/">Ministère des Mines</a></li>
-                            </ul>
-                        </div>
+
                     </div>
 
-                    <div style="margin-left:20px; width: 80%;">
-                        <h3>
-                            <a class="1" href="http://www.ipisresearch.be/publications_detail.php?id=452"> <b> Analysis of the map</b> </a>
-                        </h3>
-                    </div>
-                    <div style="margin-left:35px">
-                        <a href="http://www.ipisresearch.be/publications_detail.php?id=452">
-                            <img id="img3" src="images/analysisIPISV2.jpg" >
-                        </a>
-                        <br/>
-                    </div>
+                    <div>Développé par <a href="http://ipisresearch.be/" target="_blank">IPIS</a></div>
                 </div>
             </div>
         </div>

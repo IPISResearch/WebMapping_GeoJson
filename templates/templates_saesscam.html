@@ -1,0 +1,199 @@
+<script id="minesPopup" type="text/html">
+    <div class="popup">
+        <table class="info" border="0">
+            <tbody>
+            <tr>
+                <td class="col1">
+                    <h3>Mine: {{name}}</h3>
+
+                    <table class="infotable" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <th>Substance(s)</th>
+                            <td>{{{mineral1}}} {{{mineral2}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Province</th>
+                            <td>{{{province}}} {{{province_old}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Territoire</th>
+                            <td>{{{territoire}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Collectivité</th>
+                            <td>{{{collectivite}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Groupement</th>
+                            <td>{{{groupement}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Village</th>
+                            <td>{{{village}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Origin</th>
+                            <td>{{{origin}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Source</th>
+                            <td class="source">{{{source}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Longitude</th>
+                            <td>{{{fLongitude}}}</td>
+                        </tr>
+                        <tr>
+                            <th class="multiline">Latitude</th>
+                            <td class="multiline">{{{fLatitude}}}</td>
+                        </tr>
+                        <tr>
+                            <th class="multiline">Nombre de creuseurs</th>
+                            <td class="multiline">{{{consolidated.numberofworkers}}}</td>
+                        </tr>
+                        <tr>
+                            <th class="multiline">Nombre de puits</th>
+                            <td class="multiline">{{{consolidated.pits}}}</td>
+                        </tr>
+                        {{#consolidated.itsci}}
+                        <tr>
+                            <th class="multiline">Itsci</th>
+                            <td class="multiline">{{{consolidated.itsci}}}</td>
+                        </tr>
+                        {{/consolidated.itsci}}
+                        <tr>
+                            <th class="multiline">Qualification</th>
+                            <td class="multiline">{{{consolidated.qualification}}}</td>
+                        </tr>
+                        {{#consolidated.arrete}}
+                        <tr>
+                            <th class="multiline">Arrêté</th>
+                            <td class="multiline">{{{consolidated.arrete}}}</td>
+                        </tr>
+                        {{/consolidated.arrete}}
+                    </table>
+                </td>
+            </tr></tbody></table>
+    </div>
+</script>
+
+
+<script id="minesPopupLoading" type="text/html">
+    <div class="popup">
+        <h3>Mine: {{name}}</h3>
+        Chargement ...
+    </div>
+</script>
+
+<script id="minesHoverPopup" type="text/html">
+    <div class="popup">
+        <h3>Site:</h3>
+        {{name}}
+    </div>
+</script>
+
+
+<script id="pdvPopup" type="text/html">
+    <div class="popup">
+        <table class="info" border="0">
+            <tbody>
+            <tr>
+                <td class="col1">
+                    <h3>Point de Vente: {{name}}</h3>
+                    <table class="infotable" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <th>Substance(s)</th>
+                            <td>{{{mineral1}}} {{{mineral2}}} {{{mineral3}}} {{{mineral4}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Province</th>
+                            <td>{{{province}}} {{{province_old}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Territoire</th>
+                            <td>{{{territoire}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Collectivité</th>
+                            <td>{{{collectivite}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Groupement</th>
+                            <td>{{{groupement}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Village</th>
+                            <td>{{{village}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Origin</th>
+                            <td>{{{origin}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Source</th>
+                            <td class="source">{{{source}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Longitude</th>
+                            <td class="source">{{{fLongitude}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Latitude</th>
+                            <td class="source">{{{fLatitude}}}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr></tbody></table>
+    </div>
+</script>
+
+<script id="pdvPopupLoading" type="text/html">
+    <div class="popup">
+        <h3>Point de Vente: {{name}}</h3>
+        Chargement ...
+    </div>
+</script>
+
+<script id="pdvHoverPopup" type="text/html">
+    <div class="popup">
+        <h3>Point de Vente: {{name}}</h3>
+    </div>
+</script>
+
+
+<script id="concessionPopup" type="text/html">
+    <div class="popup">
+        <h3>Titre minier</h3>
+        <table>
+            <tr>
+                <th>Parties</th>
+                <td>{{{parties}}}</td>
+            </tr>
+            <tr>
+                <th>Type</th>
+                <td>{{{type}}}</td>
+            </tr>
+            <tr>
+                <th>Statut</th>
+                <td>{{{statut}}}</td>
+            </tr>
+            <tr>
+                <th nowrap="nowrap">Date d'expiration&nbsp;</th>
+                <td>{{{date_de1}}}</td>
+            </tr>
+        </table>
+    </div>
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+

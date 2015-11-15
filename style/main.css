@@ -358,6 +358,38 @@ label{
     background-color: #ae730b;
 }
 
+
+/* concessions */
+
+#concessionsList .datafilter{
+    background-image: none;
+}
+
+#concessionsList .datafilter:before{
+    content: "";
+    width: 12px;
+    height: 12px;
+    margin: -1px 0 0 -22px;
+    float:left;
+    border: 1px solid grey;
+}
+
+#titre_a:before{
+    background-color: #43b7ff;
+}
+
+#titre_b:before{
+    background-color: #36ae71;
+}
+
+#titre_c:before{
+    background-color: #9f2bae;
+}
+
+#titre_d:before{
+    background-color: #ae000e;
+}
+
 /* icons in legend*/
 
 #diamondMiningAreas .icon,
@@ -466,6 +498,7 @@ label{
     padding: 4px 10px 4px 24px;
     border-bottom: 1px solid silver;
     background: url("../images/ui_icons.png") no-repeat;
+    background-position: 4px -298px;
 }
 
 #searchresults .result.i0,
@@ -979,4 +1012,229 @@ info button overrides
     height: 1px;
     margin: 4px 0 4px 14px;
 }
+
+
+/* --- */
+
+
+.doubleinfo{
+    width: 680px;
+}
+
+.checklistitem{
+    border-bottom: 1px solid #e9e9e9;
+    height: 24px;
+    background-image: url("../images/checkboxes.png?V3");
+    background-position: center 2px;
+    background-repeat: no-repeat;
+}
+
+.checklistitem.oui,
+.checklistitem.Oui,
+.checklistitem.true,
+.checklistitem.Yes{
+    background-position: center -39px;
+}
+
+table.infotable td.caption,
+table.infotable td.caption2{
+    font-weight: bold;
+    border-bottom: 1px solid #8f8f8f;
+    padding: 0 4px;
+    text-align: center;
+}
+
+table.infotable td.caption2{
+    border-left: 1px solid #e2e2e2;
+}
+
+table.infotable td.checklistcaption{
+    text-align: right;
+}
+
+table.infotable td.centered,
+table.infotable td.centered2{
+    padding: 0 4px;
+    text-align: center;
+}
+
+table.infotable td.line{
+    border-bottom: 1px solid #e9e9e9;
+}
+
+table.infotable td.multiline{
+    border-bottom: 1px solid silver;
+    padding-bottom: 2px;
+}
+
+table.infotable th.multiline{
+    border-bottom: 1px solid #ececec;
+    padding-bottom: 2px;
+}
+
+
+table{
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: none;
+}
+
+table.infotable{
+    width: 100%;
+}
+
+table.infotable.tabbed{
+    margin-bottom: 50px;
+}
+
+table.infotable.padded{
+    width: 90%;
+    margin: 5% 0 0 5%;
+}
+
+table.infotable th{
+    text-align: left;
+    font-weight: bold;
+    padding: 0 2px;
+    font-size: 12px;
+    line-height: 18px;
+}
+
+table.infotable th.right{
+    text-align: right;
+}
+
+table.infotable td{
+    text-align: left;
+    padding: 0 2px;
+    font-size: 12px;
+    line-height: 18px;
+}
+
+table th,
+table td{
+    vertical-align: top;
+}
+
+.col1{
+    padding-right: 8px;
+    width: 290px;
+}
+
+.col2{
+    border-left: 1px solid #e1e1e1;
+    padding-left: 8px;
+    width: 556px;
+    position: relative;
+}
+
+.col2 h3{
+    padding-left: 8px;
+    pointer-events: none;
+}
+
+.col3{
+    border-left: 1px solid #e1e1e1;
+    padding-left: 8px;
+    width: 100px
+}
+
+.navhorizontal{
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    height: 50px;
+    border-top: 1px solid silver;
+}
+
+.navhorizontal .buttons{
+    position: absolute;
+    width: 100%;
+    height: 50px;
+    margin-top: -1px;
+}
+
+.navhorizontal .navitem{
+    float:left;
+    width: 100px;
+    height: 50px;
+    text-align: center;
+    padding: 10px 6px 0 6px;
+    line-height: 13px;
+    border-top: 1px solid silver;
+    border-right: 1px solid silver;
+    background-color: #dfdfdf;
+    font-size: 12px;
+    margin-top: 1px;
+}
+
+.navhorizontal .navitem.active{
+    background-color: white;
+    border-top: 1px solid white;
+    margin-top: 0px;
+    padding: 6px 6px 0 6px;
+}
+
+.navhorizontal .navitem:hover{
+    background-color: #bedfb9;
+    cursor: pointer;
+}
+
+.navhorizontal .navitem.active:hover{
+    background-color: white;
+    cursor: pointer;
+}
+
+.navvertical{
+    position: absolute;
+    width: 100px;
+    margin-left: -1px;
+    bottom: 86px;
+}
+.navvertical .navitem{
+    border-bottom: 1px solid silver;
+    background-color: #dfdfdf;
+    border-left: 1px solid silver;
+    padding: 8px 2px;
+    text-align: center;
+}
+.navvertical .navitem.active{
+    background-color: white;
+    border-left: 1px solid white;
+    border-top: 1px solid silver;
+}
+
+.yeartabs{
+    border-bottom: 1px solid silver;
+}
+
+.yeartabs .tab{
+    float: left;
+    border-right: 1px solid silver;
+    border-bottom: 1px solid silver;
+    background-color: #e8e8e8;
+    padding: 4px 10px;
+    text-align: center;
+    margin-bottom: -1px;
+    color: #727272;
+}
+
+.yeartabs .tab:hover{
+    background-color: #bedfb9;
+    cursor: pointer;
+    color: black;
+}
+
+.yeartabs .tab.active{
+    border-bottom: 1px solid white;
+    background-color: white;
+    color: black;
+}
+
+.popuptabcontent .empty{
+    padding: 30px 0 0 30px;
+    color: grey;
+}
+
+
 

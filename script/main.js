@@ -3,7 +3,6 @@ var dataset = {};
 var Templates={};
 var baseLayer={};
 
-
 var translations = {
     miningSites : "Sites miniers",
     tradeCentres : "Points de vente",
@@ -61,9 +60,8 @@ var translations = {
 };
 
 
-
 // the version number gets appended to all urls to force an update
-var version = "14";
+var version = "15";
 var cookieName = "disclaimerL14";
 
 // the password to access this map is in a semi public report.
@@ -97,7 +95,7 @@ function initApp(){
     }
 
     // load templates first, needed for Map build up.
-    $.get('templates/templates.html?v' + version, function(templates) {
+    $.get('templates/'+Config.templateURL+'?v' + version, function(templates) {
         $.each($(templates + " script"),function(index,template){
             Templates[template.id] = template.innerHTML;
         });

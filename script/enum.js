@@ -33,7 +33,8 @@ var FILLTYPE = {
     PROTECTED_AREA: 3,
     INACCESSIBLE_AREA: 4,
     ARMED_GROUPS: 5,
-    LAKE: 6
+    LAKE: 6,
+    CONCESSION: 7
 };
 
 var COLOR = {

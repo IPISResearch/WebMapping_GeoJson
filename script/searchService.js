@@ -106,7 +106,7 @@ var SearchService = (function() {
             var div = document.createElement("div");
             div.className = "result i" + result.i;
             div.innerHTML = result.s;
-            div.setAttribute("data-co", result.y + "," + result.x);
+            div.setAttribute("data-co", result.Y + "," + result.X);
             searchResultElement.appendChild(div);
         }
 

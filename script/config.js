@@ -5,6 +5,19 @@ var Config = (function() {
     self.IPIS_API_URL = "http://ipis.annexmap.net/api/";
     self.IPIS_API_KEY = "demo";
 
+    self.diclaimerURL = "disclaimer.html";
+    self.templateURL = "templates.html";
+    self.showArmy = true;
+
+    var isSAESSCAM = true;
+
+    if (isSAESSCAM){
+        self.diclaimerURL = "disclaimer_saesscam.html";
+        self.templateURL = "templates_saesscam.html";
+        self.showArmy = false;
+    }
+
+
     self.getIPISAPIurl = function(endpoint){
         return self.IPIS_API_URL + "data/" + endpoint + "?key=" + self.IPIS_API_KEY;
     };
@@ -15,6 +28,8 @@ var Config = (function() {
         y: 22,
         zoom: 6
     };
+
+
 
     return self;
 }());
