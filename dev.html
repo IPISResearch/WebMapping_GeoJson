@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=utf-8 />
+    <title>IPIS Map</title>
+
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
+
+    <script>
+        var MAPCONTEXT = "IPIS_DEV";
+    </script>
+
+    <script src='script/external/mapbox.js'></script>
+    <script type="text/javascript" src="script/external/cluster/leaflet.markercluster-src.js"></script>
+
+    <script type="text/javascript" src="script/external/jquery.min.js"></script>
+    <script type="text/javascript" src="script/mustache.js"></script>
+
+    <script type="text/javascript" src="script/util.js"></script>
+    <script type="text/javascript" src="script/color.js"></script>
+    <script type="text/javascript" src="script/enum.js"></script>
+    <script type="text/javascript" src="script/main.js?v27"></script>
+    <script type="text/javascript" src="script/config.js?v27"></script>
+    <script type="text/javascript" src="script/mapService.js?v27"></script>
+    <script type="text/javascript" src="script/searchService.js?v27"></script>
+    <script type="text/javascript" src="script/ui.js?v27"></script>
+    <script type="text/javascript" src="script/popup.js?v27"></script>
+
+
+    <link href='//api.tiles.mapbox.com/mapbox.js/v1.6.1/mapbox.css' rel='stylesheet' />
+    <link href='script/external/cluster/MarkerCluster.css' rel='stylesheet' />
+    <link href='script/external/cluster/MarkerCluster.Default.css' rel='stylesheet' />
+
+
+    <!-- C3 and D3 -->
+    <script type="text/javascript" src="script/external/c3/d3_3.5.6_min.js"></script>
+    <link href="script/external/c3/c3.min.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="script/external/c3/c3.min.js"></script>
+
+    <link href='style/main.css?v27' rel='stylesheet' />
+
+    <!--[if lte IE 8]>
+    <link href='http://api.tiles.mapbox.com/mapbox.js/v1.6.1/mapbox.ie.css' rel='stylesheet' >
+    <![endif]-->
+
+</head>
+<body>
+<div id="login" class="hidden">
+    <div id="loginpanel">
+        IPIS DRC map V5<br>
+        <br>
+        S'il vous plaît entrez le mot de passe
+        <input type="password" id="password" class="inputbox">
+        <input type="button" value="S'identifier" class="button" id="loginbutton">
+    </div>
+</div>
+<div id="mapUI" class="hidden">
+    <div id='map'>
+        <div id='legend'>
+            <div class="charts">
+                <h3>Sites miniers visibles</h3>
+                <div class="label">
+                    <span id="chart_current"></span> de <span id="chart_total"></span> sites miniers
+                </div>
+                <div id="chart1"></div>
+
+            </div>
+
+
+
+        </div>
+    </div>
+    <div id='searchbox'>
+        <a class="control-search" href="#">
+            Search
+        </a>
+        <div id="searchpanel">
+            <div class="searchinput"><form id="searchForm"><input type="text" placeholder="Search"></form></div>
+            <div id="searchresults">
+            </div>
+        </div>
+    </div>
+
+    <div id="infobutton"></div>
+    <div id="infobox">
+        <a class="leaflet-popup-close-button" href="#" id="infolayer">×</a>
+        <div id="infoScroller">
+            <div id="infoContent" class="empty"></div>
+        </div>
+    </div>
+
+    <div id="layersbutton"></div>
+    <div id="layers">
+        <a class="leaflet-popup-close-button" href="#" id="closelayer">×</a>
+        <div id="layersScroll">
+            <div id="layersContainer">
+
+                <div id="logo">
+                    <a href="http://www.cami.cd"><img src="images/camilogo.png?v2" border="0" width="60"></a>
+                    <img src="images/drclogo.png" border="0" width="60">
+                    <a href="http://www.saesscam.cd"><img src="images/saesscamlogo.png?v2" border="0" width="70"></a>
+                    <a href="http://ipisresearch.be"><img src="images/ipislogo.png?v2" border="0" width="40"></a>
+                </div>
+                <h2>Carte de base</h2>
+                <div class="mainlayergroup">
+                    <div class="baselayer" id="satelite">
+                        <div class="inlinemapicon satelite"></div>
+                        Satellite</div>
+                    <div class="baselayer" id="terrain">
+                        <div class="inlinemapicon terrain"></div>
+                        Terrain</div>
+                    <div class="baselayer" id="streets">
+                        <div class="inlinemapicon streets"></div>
+                        Rues</div>
+                    <div class="baselayer" id="none">
+                        <div class="inlinemapicon none"></div>
+                        Aucune</div>
+                    <div class="line"></div>
+                    <div class="datalayer" id="borders">Limites administratives et frontières</div>
+                    <div class="datalayer" id="places">Localités</div>
+                    <div class="datalayer" id="protectedAreas">Aires protégées (source : WRI, 2013)</div>
+                    <div class="datalayer hidden" id="lakes">Lakes</div>
+
+
+                </div>
+                <h2>Ensembles</h2>
+                <div class="mainlayergroup">
+                    <div class="layergroup">
+                        <div class="datalayer" id="mines">Sites miniers</div>
+                        <div class="datalayer" id="sellingpoints">Points de vente</div>
+                    </div>
+                </div>
+
+                <h2>Année de dernière visite</h2>
+                <div class="mainlayergroup">
+                    <div class="layergroup">
+                        <div class="layerlist" id="yearsList" data-layer="mines"></div>
+                    </div>
+                </div>
+                <h2>Substances minérales</h2>
+                <div class="mainlayergroup">
+                    <div class="layergroup">
+                        <div id="timefilter"></div>
+                        <div id="incidentsOptions" class="hidden">
+                            <div class="command" id="listIncidents"> Show as <b>list</b></div>
+                        </div>
+                        <div class="layerlisttitle datalayer hidden" id="mines2">Minerals</div>
+                        <div class="layerlist" id="mineralList" data-layer="mines"></div>
+                    </div>
+                </div>
+                <h2 class="multiline">Traitement de l’or observé<br><small style="font-weight: normal">(sites visités en 2015)</small></h2>
+                <div class="mainlayergroup">
+                    <div class="layergroup">
+                        <div class="layerlist" id="goldtypeList" data-layer="mines">
+                            <div class="datafilter persistantfilter" data-filter="goldtype" data-filterid="au_me" data-value="Mercure" data-substring="true" id="goldtype_mercure">Mercure</div>
+                            <div class="datafilter persistantfilter" data-filter="goldtype" data-filterid="au_cy" data-value="Cyanure" data-substring="true" id="goldtype_cyanure">Cyanure</div>
+                            <div class="datafilter persistantfilter" data-filter="goldtype" data-filterid="au_no" data-value="Non" data-substring="true" id="goldtype_non">Non traité</div>
+                        </div>
+                    </div>
+                </div>
+                <h2 class="multiline">Présence armée <small style="font-weight: normal">lors de la dernière visite</small></h2>
+                <div class="mainlayergroup">
+                    <div class="layergroup">
+                        <div class="layerlist" id="armyList" data-layer="mines">
+                            <div class="datafilter persistantfilter" data-filter="armygroup" data-filterid="a_no" data-value="z_none" id="armygroup__z_none">Pas de présence armée constatée</div>
+                            <div class="datafilter persistantfilter" data-filter="armygroup" data-filterid="a_lo" data-value="a_local" id="armygroup__a_local">Groupe armé local</div>
+                            <div class="datafilter persistantfilter" data-filter="armygroup" data-filterid="a_fo" data-value="b_foreign" id="armygroup__b_foreign">Groupe armé étranger</div>
+                            <div class="layerlistsectiontitle">FARDC</div>
+                            <div class="datafilter subsection persistantfilter" data-filter="armygroup" data-filterid="a_fa" data-value="c_fardc" id="armygroup__c_fardc">Pas d'ingérence constatée</div>
+                            <div class="datafilter subsection persistantfilter" data-filter="armygroup" data-filterid="a_fr" data-value="d_fardcred" id="armygroup__d_fardcred">Éléments indisciplinés</div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <h2>Présence services <small style="font-weight: normal">(sites visités en 2015)</small></h2>
+                <div class="mainlayergroup">
+                    <div class="layergroup">
+                        <div class="layerlist" id="servicesList" data-layer="mines">
+                            <div class="datafilter persistantfilter" data-filterid="s_s" data-filter="services" data-value="s" data-substring="true" id="services_s">SAESSCAM</div>
+                            <div class="datafilter persistantfilter" data-filterid="s_d" data-filter="services" data-value="d" data-substring="true" id="services_d">Division des mines</div>
+                            <div class="datafilter persistantfilter" data-filterid="s_i" data-filter="services" data-value="i" data-substring="true" id="services_i">iTSCi</div>
+                            <div class="datafilter persistantfilter" data-filterid="s_t" data-filter="services" data-value="t" data-substring="true" id="services_t">Couverture téléphone</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="multiline">Qualification ministérielle<br><small style="font-weight: normal">jusqu'à janvier 2016</small></h2>
+                <div class="mainlayergroup">
+                    <div class="layergroup">
+                        <div class="layerlist" id="qualificationList" data-layer="mines">
+                            <div class="datafilter persistantfilter" data-filter="qualification" data-filterid="q_g" data-value="green" id="qualification_green">Vert</div>
+                            <div class="datafilter persistantfilter" data-filter="qualification" data-filterid="q_y" data-value="yellow" id="qualification_yellow">Jaune</div>
+                            <div class="datafilter persistantfilter" data-filter="qualification" data-filterid="q_r" data-value="red" id="qualification_red">Rouge</div>
+                            <div class="datafilter persistantfilter" data-filter="qualification" data-filterid="q_n" data-value="grey" id="qualification_grey">Aucune</div>
+                        </div>
+                    </div>
+                </div>
+                <h2>Nombre de creuseurs</h2>
+                <div class="mainlayergroup">
+                    <div class="layergroup">
+                        <div class="layerlist" id="workerList" data-layer="mines"></div>
+                    </div>
+                </div>
+
+                <h2>Destination des minéraux</h2>
+                <div class="mainlayergroup">
+                    <div class="layerlisttitle datalayer multiline" id="destinations">Minéral</div>
+                    <div class="layerlist inactive" data-layer="destinations" id="destinationsList">
+                        <div class="datafilter persistantfilter" data-filter="mineral" data-filterid="d_au" data-value="Or" id="destination_or">Or</div>
+                        <div class="datafilter persistantfilter" data-filter="mineral" data-filterid="d_ca" data-value="Cassitérite" id="destination_cassiterite">Cassitérite</div>
+                        <div class="datafilter persistantfilter" data-filter="mineral" data-filterid="d_ta" data-value="Coltan" id="destination_coltan">Coltan</div>
+                        <div class="layerlistlegend">
+                            <div><div class="square"><div class="innerline green"></div></div>Point de vente</div>
+                            <div><div class="square"><div class="innerline red"></div></div> Destination finale</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2>Titres miniers (source <a href="http://portals.flexicadastre.com/drc/en/" target="_blank">CAMI</a>)</h2>
+                <div class="mainlayergroup">
+                    <div class="layerlisttitle datalayer multiline" id="concessions">Septembre 2016</div>
+                    <div class="layerlist inactive" data-layer="concessions" id="concessionsList">
+                        <div class="datafilter persistantfilter" data-filter="group" data-filterid="t_pr" data-value="PR" id="titre_a">Permis de recherche</div>
+                        <div class="datafilter persistantfilter" data-filter="group" data-filterid="t_pe" data-value="PE" id="titre_b">Permis d'exploitation</div>
+                        <div class="datafilter persistantfilter" data-filter="group" data-filterid="t_zea" data-value="ZEA" id="titre_c">Zones d'exploitation artisanale</div>
+                        <div class="datafilter persistantfilter" data-filter="group" data-filterid="t_zin" data-value="ZIN" id="titre_d">Zones interdites</div>
+                    </div>
+                </div>
+
+                <!--
+                <h2>Zones d'influence (10 km autour des sites)</h2>
+                <div class="mainlayergroup">
+                    <div class="layerlisttitle datalayer multiline" id="armyPositions20132015">Groupes armés présents sur les sites miniers (IPIS 2013-2015)</div>
+                    <div class="layerlist inactive" data-layer="armyPositions20132015" id="armyPositions20132015List">
+                        <div class="datafilter indent" data-filter="Type" data-value="n" id="armyPositions20132015_n">Groupe armé local</div>
+                        <div class="datafilter indent" data-filter="Type" data-value="e" id="armyPositions20132015_e">Groupe armé étranger</div>
+                    </div>
+                    <div class="layerlisttitle datalayer multiline" id="fardc20132015">Militaires indisciplinés présents sur les sites miniers (IPIS 2013-2015)</div>
+
+                </div>
+                -->
+
+                <!-- Other sites -->
+                <!-- Militaires indisciplinés présents sur les sites miniers (IPIS 2015) -->
+
+                <div class="layerinfotext">
+                    <div style="margin-top: 20px">
+                        La "Cartographie des sites miniers d’exploitation artisanale de l’Est de la RD Congo"
+                        est financée en 2015 par <a class="1" href=http://www.iom.int/fr> <b>l’Organisation Internationale pour les Migrations (OIM)</b> et <a class="1" href=http://www.prominesrdc.cd/> <b>PROMINES</b> </a> et en 2013-2014 par <a class="1" href=http://www.prominesrdc.cd/> <b>PROMINES</b> </a> et <a href="http://diplomatie.belgium.be"><b>le Ministère des Affaires étrangères de Belgique</b>.</a>
+
+                        <br>
+                        <br>Système géodésique: WGS 84
+                        <br>Collecte des données: mars 2013 à mars 2014, avril à novembre 2015
+                        <br>Date de production: mars 2016
+                        <br><br>
+                        Sources des données géographiques : <a href="http://ipisresearch.be/" target="_blank">IPIS</a>, <a href="http://portals.flexicadastre.com/drc/en/" target="_blank">CAMI</a>, <a href="http://www.rgc.cd" target="_blank">RGC</a> et <a href="http://www.bgr.bund.de/EN/Home/homepage_node_en.html" target="_blank">BGR</a>.<br>
+                        IPIS ne saurait être tenu responsable de la qualité des limites, des noms et des désignations utilisés sur cette carte.
+                        <br><br>
+                        <a href="javascript://;" id="disclaimerbutton"><b>Disclaimer</b></a>
+
+
+
+                        <h3>Contacts</h3>
+                        <h4>IPIS</h4>
+                        <div style="padding-left:32px">
+                            <ul>
+                                <li>
+                                    Chercheurs:
+                                    <a href="http://ipisresearch.be/team-member/yannick-weyns/">Yannick Weyns</a>,
+                                    <a href="http://ipisresearch.be/team-member/john-doe/">Lotte Hoex</a>,
+                                    <a href="http://ipisresearch.be/team-member/filip-hilgert/">Filip Hilgert</a>
+                                    et <a href="http://ipisresearch.be/team-member/alexandre-jaillon/">Alexandre Jaillon</a>
+                                </li>
+                                <li>
+                                    Liaison: <a href="http://ipisresearch.be/team-member/zacharie-bulakali-ntakobajia/">Zacharie Bulakali</a>
+                                </li>
+                                <li>
+                                    Cartographie: <a href="http://ipisresearch.be/team-member/alexandre-jaillon/">Alexandre Jaillon</a>, <a href="http://ipisresearch.be/team-member/filip-hilgert/">Filip Hilgert</a>  et
+                                    Stef Verheijen (web mapping)
+                                </li>
+                            </ul>
+                        </div>
+
+                        <h4>RD Congo</h4>
+                        <div style="padding-left:32px">
+                            <ul>
+                                <li><a href="http://mines-rdc.cd/fr/">Ministère des Mines</a></li>
+                                <li><a href="http://www.cami.cd">Cadastre Minier</a></li>
+                                <li><a href="http://www.saesscam.cd">SAESSCAM</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div style="margin-left:20px; width: 80%;">
+                        <h3>
+                            <a class="1" href="http://ipisresearch.be/publication/analysis-interactive-map-artisanal-mining-areas-eastern-drc-may-2014-update/"> <b> Analysis of the map 2013-2014</b> </a>
+                        </h3>
+                    </div>
+                    <div style="margin-left:35px">
+                        <a href="http://ipisresearch.be/publication/analysis-interactive-map-artisanal-mining-areas-eastern-drc-may-2014-update/">
+                            <img id="img3" src="images/analysisIPISV2.jpg" >
+                        </a>
+                        <br/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="datalist" class="hidden">
+        <a class="leaflet-popup-close-button" href="#" id="closeDataList">×</a>
+        <div id="dataListScroll">
+            <div id="dataListContainer">
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

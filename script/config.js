@@ -9,7 +9,8 @@ var Config = (function() {
     self.templateURL = "templates.html";
     self.showArmy = true;
     self.showVisitYears = true;
-    self.usePass = true;
+    self.usePass = false;
+
 
     if (MAPCONTEXT == "SAESSCAM"){
         self.diclaimerURL = "disclaimer_saesscam.html";
@@ -25,6 +26,9 @@ var Config = (function() {
         if (MAPCONTEXT == "SAESSCAM"){
             if (endpoint.indexOf("cod/")==0) endpoint = endpoint.substr(4);
             return self.IPIS_API_URL + "data/map/" + endpoint;
+        }else if (MAPCONTEXT == "IPIS_DEV") {
+            if (endpoint.indexOf("cod/")==0) endpoint = "cod_dev/" + endpoint.substr(4);
+            return self.IPIS_API_URL + "data/" + endpoint + "?key=" + self.IPIS_API_KEY;
         }else{
             return self.IPIS_API_URL + "data/" + endpoint + "?key=" + self.IPIS_API_KEY;
         }
