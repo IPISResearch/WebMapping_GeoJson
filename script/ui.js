@@ -89,12 +89,41 @@ var UI = (function() {
          */
         container.on("click",".datafilter",function(){
 
-            $(this).toggleClass("inactive");
-
             var layerList = $(this).closest(".layerlist");
+
+
             if (layerList){
+                // check if it's the first item in a filterlist being deactivated
+
+                var filterCount = 0;
+                var filterItemCount = 0;
+                layerList.find(".datafilter").each(function(index,elm){
+                    filterItemCount++;
+                    if ($(elm).hasClass("inactive")) filterCount++;
+                });
+
+
+                if (filterCount == 0){
+                    // no filter present: keep only selected item active
+                    layerList.find(".datafilter").addClass("inactive");
+                    $(this).removeClass("inactive");
+                }else{
+                    if (filterCount == filterItemCount-1 && !$(this).hasClass("inactive")){
+                        // a filter can't be completely empty:
+                        //activate all
+                        layerList.find(".datafilter").removeClass("inactive");
+                    }else{
+                        $(this).toggleClass("inactive");
+                    }
+
+                }
+
                 updateLayerListFilter(layerList);
+            }else{
+                $(this).toggleClass("inactive");
             }
+
+
         });
 
         container.find("h2").on("click",function(){
@@ -378,6 +407,7 @@ var UI = (function() {
     function updateLayerListFilter(layerList){
         var layerId = layerList.data("layer");
         var layerListID = layerList.attr("id");
+
         if (layerId && dataset[layerId]){
             var filterList =  [];
             var hasFilter = false;
@@ -387,7 +417,8 @@ var UI = (function() {
                 }else{
                     filterList.push({
                         'property': $(this).data("filter"),
-                        'value': $(this).data("value")
+                        'value': $(this).data("value"),
+                        'matchSubString' : $(this).data("substring") ? true : false
                     })
                 }
             });
@@ -398,7 +429,12 @@ var UI = (function() {
                     var result = false;
                     for (var i = 0, len = filterList.length; i<len;i++){
                         var filter = filterList[i];
-                        if (f.properties[filter.property] == filter.value) result = true;
+                        var value = f.properties[filter.property];
+                        if (filter.matchSubString){
+                            if (value && value.indexOf(filter.value)>=0) result = true;
+                        }else{
+                            if (value == filter.value) result = true;
+                        }
                     }
                     return result;
                 }
@@ -579,7 +615,25 @@ var UI = (function() {
     // the parent DOM element should have a data-layer attribute containing the datalayer to filter
     // when persistant=true then the state of the filter will be included in the url and restored on a page refresh
 
-    function buildUIFilterList(parentId,fieldname,persistant,legend_prefix,label_prefix,dataSet){
+    function buildUIFilterList(properties){
+
+        properties = properties || {};
+
+        var parentId = properties.parentId;
+        var fieldname = properties.fieldname;
+        var persistant = properties.persistant;
+        var legend_prefix = properties.legend_prefix;
+        var label_prefix = properties.label_prefix;
+        //var persistant_prefix = properties.persistant_prefix || "";
+        var dataSet = properties.dataSet;
+
+        if (fieldname == "year"){
+            if (!Config.showVisitYears){
+
+                return;
+            }
+        }
+
         var container = document.getElementById(parentId);
 
         for (var i=0, len=dataSet.length; i<len; i++){
@@ -588,16 +642,24 @@ var UI = (function() {
             item.className = "datafilter";
             if (persistant) {
                 item.className = "datafilter persistantfilter";
-                item.setAttribute('data-filterId', persistantfilter);
-                persistantfilter++;
+                item.setAttribute('data-filterId', getUniqueFilterCode(fieldname,data));
+
             }
             item.setAttribute('data-filter', fieldname);
             item.setAttribute('data-value', data);
+            if (properties.searchSubstring) item.setAttribute('data-substring','true');
             item.id=legend_prefix + "_" + cleanString(data);
 
             item.innerHTML = translations[label_prefix + data] || label_prefix + data;
 
+            if (fieldname == "year" && !MapService.hasFilterPreset()){
+                if (data == "2009" || data == "2010" || data == "2011" || data == "2012"){
 
+                    // only of no url preset list is present
+
+                    item.className += " inactive";
+                }
+            }
 
             container.appendChild(item);
         }
@@ -605,14 +667,111 @@ var UI = (function() {
 
     }
 
+
+    function getUniqueFilterCode(fieldname,value){
+        var result = persistantfilter;
+
+        if (fieldname == "minerals"){
+            result = filterCode[value] || persistantfilter;
+        }
+
+        if (fieldname == "workergroup"){
+            result = filterCode["workergroup" + value] || persistantfilter;
+        }
+
+        if (fieldname == "year"){
+            result = value;
+        }
+
+        persistantfilter++;
+        return result
+    }
+
+    function orderFilterList(list){
+        var orderIndex = {
+            "gold" : 1,
+            "cassiterite" : 2,
+            "coltan" : 3,
+            "wolframite" : 4,
+            "diamond" : 5,
+            "tourmaline" : 6,
+            "copper" : 7,
+            "amethyst" : 8,
+            "monazite" : 9
+        };
+
+        var orderArray = [];
+        var i;
+
+        for (i = 0, len = list.length; i<len; i++){
+            var value = list[i];
+            var index = orderIndex[value] || 9999;
+            orderArray.push({index: index, value: value });
+        }
+
+        orderArray.sort(function(a,b){
+            var x = a.index;
+            var y = b.index;
+            return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+        });
+
+        var result = [];
+        for (i = 0, len = orderArray.length; i<len; i++){
+            result.push(orderArray[i].value);
+        }
+        return result;
+    }
+
     function buildUIFilterListFromUrl(url,next){
         $.get(url,function(result){
             if (result.status == "ok"){
                 result = result.result;
-                buildUIFilterList("mineralList","mineral",true,"mineral_","",result.minerals);
-                buildUIFilterList("yearsList","year",false,"year_","",result.years);
-                buildUIFilterList("armyList","armygroup",false,"armygroup_","army",result.armygroups);
-                buildUIFilterList("workerList","workergroup",false,"workergroup_","workergroup",result.workergroups);
+
+                // order minerals
+                var minerals = orderFilterList(result.minerals);
+
+
+                //parentId,fieldname,persistant,legend_prefix,label_prefix,dataSet,searchSubstring
+
+
+                buildUIFilterList({
+                    parentId: "mineralList",
+                    fieldname: "minerals",
+                    persistant: true,
+                    legend_prefix: "mineral_",
+                    label_prefix: "",
+                    dataSet: minerals,
+                    searchSubstring: true
+                });
+
+                buildUIFilterList({
+                    parentId: "yearsList",
+                    fieldname: "year",
+                    persistant: true,
+                    legend_prefix: "year_",
+                    label_prefix: "",
+                    dataSet: result.years
+                });
+
+               /* buildUIFilterList({
+                    parentId: "armyList",
+                    fieldname: "armygroup",
+                    persistant: false,
+                    legend_prefix: "armygroup_",
+                    label_prefix: "army",
+                    dataSet: result.armygroups
+                });
+                */
+
+                buildUIFilterList({
+                    parentId: "workerList",
+                    fieldname: "workergroup",
+                    persistant: true,
+                    legend_prefix: "workergroup_",
+                    label_prefix: "workergroup",
+                    dataSet: result.workergroups
+                });
+
                 if (next) next();
             }
         });

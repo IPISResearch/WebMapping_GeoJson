@@ -16,9 +16,15 @@ var SearchService = (function() {
     };
 
     var loadSearchData = function(){
-        $.get("data/search/places.json?v" + version,function(result){
-            dataset = result;
+        //$.get("data/search/places.json?v" + version,function(result){
+        //    dataset = result;
+        //});
+
+
+        $.get(Config.getIPISAPIurl("cod/searchdata") + "?v" + version,function(result){
+            dataset = result.result;
         });
+
     };
 
      /*
@@ -106,7 +112,7 @@ var SearchService = (function() {
             var div = document.createElement("div");
             div.className = "result i" + result.i;
             div.innerHTML = result.s;
-            div.setAttribute("data-co", result.Y + "," + result.X);
+            div.setAttribute("data-co", result.y + "," + result.x);
             searchResultElement.appendChild(div);
         }
 
@@ -136,6 +142,54 @@ var SearchService = (function() {
 
     // usage: SearchService.buildSearchIndex('base_places.json')
     var buildSearchIndex = function(baseDataUrl){
+
+        $.get("data/search/" + baseDataUrl,function(result){
+
+            var filterDuplicates = true;
+            var itemsCache = {};
+
+            baseData = result;
+            var searchData = [];
+            for (var i = 0, len = baseData.features.length; i<len; i++){
+                var feature = baseData.features[i];
+                var properties = feature.properties;
+                var co = feature.geometry.coordinates;
+
+                properties.Type = 1;
+
+                var searchItem = {
+                    "s":properties.LOCATION.toLowerCase(),
+                    "i":properties.Type,
+                    "x":co[0],
+                    "y":co[1]
+                };
+
+                var addItem = true;
+                if (filterDuplicates){
+                    if (typeof itemsCache[searchItem.s] == "undefined"){
+                        itemsCache[searchItem.s] = true;
+                    }else{
+                        addItem = false;
+                    }
+                }
+                if (addItem) searchData.push(searchItem);
+            }
+
+            var box = document.createElement("textarea");
+            box.style.position = "absolute";
+            box.style.width = "500px";
+            box.style.height = "500px";
+            box.style.zIndex = 10000;
+            document.body.appendChild(box);
+            box.innerHTML = JSON.stringify(searchData);
+
+        });
+    };
+
+
+    // usage: SearchService.buildSearchIndex('base_places.json')
+    var buildSearchIndexFromUrl = function(baseDataUrl){
+
 
         $.get("data/search/" + baseDataUrl,function(result){
 

@@ -50,11 +50,17 @@
                     <table class="infotable" border="0" cellspacing="0" cellpadding="0">
                         <tr>
                             <th>Substance(s)</th>
-                            <td>{{{mineral1}}} {{{mineral2}}}</td>
+                            <td>{{{mineral1}}}{{#mineral2}}, {{{mineral2}}}{{/mineral2}}{{#mineral3}}, {{{mineral3}}}{{/mineral3}}{{#mineral4}}, {{{mineral4}}}{{/mineral4}}{{#mineral5}}, {{{mineral5}}}{{/mineral5}}</td>
                         </tr>
+                        {{#consolidated.goldtype}}
+                        <tr>
+                            <th nowrap="nowrap">Traitement de l'or observé</th>
+                            <td>{{{consolidated.goldtype}}}</td>
+                        </tr>
+                        {{/consolidated.goldtype}}
                         <tr>
                             <th>Province</th>
-                            <td>{{{province}}} {{{province_old}}}</td>
+                            <td>{{{province}}}</td>
                         </tr>
                         <tr>
                             <th>Territoire</th>
@@ -73,12 +79,16 @@
                             <td>{{{village}}}</td>
                         </tr>
                         <tr>
-                            <th>Origin</th>
+                            <th>Origine</th>
                             <td>{{{origin}}}</td>
                         </tr>
                         <tr>
                             <th>Source</th>
                             <td class="source">{{{source}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Code</th>
+                            <td>{{{pcode}}}</td>
                         </tr>
                         <tr>
                             <th>Longitude</th>
@@ -103,7 +113,7 @@
                         {{#consolidated.depth}}
                         <tr>
                             <th class="multiline">Profondeur</th>
-                            <td class="multiline">{{{consolidated.depth}}}</td>
+                            <td class="multiline">{{{consolidated.depth}}} m</td>
                         </tr>
                         {{/consolidated.depth}}
                         {{#consolidated.soil}}
@@ -112,12 +122,12 @@
                             <td class="multiline">{{{consolidated.soil}}}</td>
                         </tr>
                         {{/consolidated.soil}}
-                        {{#consolidated.itsci}}
+                        {{#consolidated.itsci_decoded}}
                         <tr>
-                            <th class="multiline">Itsci</th>
-                            <td class="multiline">{{{consolidated.itsci}}}</td>
+                            <th class="multiline">iTSCi</th>
+                            <td class="multiline">{{{consolidated.itsci_decoded}}}</td>
                         </tr>
-                        {{/consolidated.itsci}}
+                        {{/consolidated.itsci_decoded}}
                         <tr>
                             <th class="multiline">Qualification</th>
                             <td class="multiline">{{{consolidated.qualification}}}</td>
@@ -133,7 +143,8 @@
                 <td class="col2">
                 <div class="navhorizontal">
                     <div class="buttons">
-                        <div class="navitem active" id="tab_armed_presence">Présence armée</div><div class="navitem" id="tab_state_service">Services de l'Etat</div><div class="navitem" id="tab_women_children">Femmes et enfants</div><div class="navitem" id="tab_phone_coverage">Couverture téléphone</div>
+                        {{#imageUrl}}<div class="navitem small active" id="tab_images"><span>Photo</span></div><div class="navitem small" id="tab_armed_presence"><span>Présence armée</span></div><div class="navitem small" id="tab_state_service"><span>Services</span></div><div class="navitem small" id="tab_women_children"><span>Femmes et enfants</span></div><div class="navitem small" id="tab_phone_coverage"><span>Couverture téléphone</span></div>{{/imageUrl}}
+                        {{^imageUrl}}<div class="navitem active" id="tab_armed_presence"><span>Présence armée</span></div><div class="navitem" id="tab_state_service"><span>Services</span></div><div class="navitem" id="tab_women_children"><span>Femmes et enfants</span></div><div class="navitem" id="tab_phone_coverage"><span>Couverture téléphone</span></div>{{/imageUrl}}
                     </div>
 
                 </div>
@@ -156,11 +167,12 @@
 <script id="popuptab_years" type="text/html">
     <div class="yeartabs">
         {{#.}}
-            <div class="tab {{#first}}active{{/first}}" onclick="POPUP.activatePopupYear(this,{{year}})">{{label}}</div>
+            <div class="tab {{#first}}active{{/first}}" onclick="POPUP.activatePopupYear(this,'{{year}}')">{{label}}</div>
         {{/.}}
         <div class="clear"></div>
     </div>
 </script>
+
 
 <script id="popuptab_empty" type="text/html">
     <div class="empty">
@@ -168,49 +180,62 @@
     </div>
 </script>
 
+<script id="popuptab_images" type="text/html">
+    <img src="images/sites/{{.}}" height="400">
+</script>
+
 <script id="popuptab_army_presence" type="text/html">
-    <table class="infotable tabbed" border="0" cellspacing="1" cellpadding="0">
-        <tr>
-            <th nowrap="" width="10%"></th>
-            {{#.}}
-                <td class="caption">{{armed_group}}</td>
-            {{/.}}
-        </tr>
-        <tr>
-            <th nowrap="" class="right">Contrôle(s) exercé(s) sur site</th><td> </td>
-        </tr>
-        <tr><td nowrap="" class="checklistcaption">taxation</td>
-            {{#.}}
-            <td class="checklistitem {{#taxation}}oui{{/taxation}}"></td>
-            {{/.}}
-        </tr>
-        <tr>
-            <td nowrap="" class="checklistcaption">achats forcés</td>
-            {{#.}}
-            <td class="checklistitem {{#forced_buying}}oui{{/forced_buying}}"></td>
-            {{/.}}
-        </tr>
-        <tr><td nowrap="" class="checklistcaption">achètent des minerais</td>
-            {{#.}}
-            <td class="checklistitem {{#buying_minerals}}oui{{/buying_minerals}}"></td>
-            {{/.}}
-        </tr>
-        <tr><td nowrap="" class="checklistcaption">travaux forcés</td>
-            {{#.}}
-            <td class="checklistitem {{#forced_labour}}oui{{/forced_labour}}"></td>
-            {{/.}}
-        </tr>
-        <tr><td nowrap="" class="checklistcaption">creusent eux-mêmes</td>
-            {{#.}}
-            <td class="checklistitem {{#digging}}oui{{/digging}}"></td>
-            {{/.}}
-        </tr>
-        <tr><td nowrap="" class="checklistcaption">Monopoly</td>
-            {{#.}}
-            <td class="checklistitem {{#monopoly}}oui{{/monopoly}}"></td>
-            {{/.}}
-        </tr>
-    </table>
+        {{#.}}
+            {{^hasArmedPresence}}
+             <br>&nbsp;&nbsp;&nbsp;Pas de présence armée constatée
+            {{/hasArmedPresence}}
+        {{/.}}
+        <table class="infotable tabbed {{#.}}{{^hasArmedPresence}} hidden {{/hasArmedPresence}}{{/.}}" border="0" cellspacing="1" cellpadding="0">
+            <tr>
+                <th nowrap="" width="10%"></th>
+                {{#.}}
+                    <td class="caption">{{armed_group}}</td>
+                {{/.}}
+            </tr>
+            <tr>
+                <th nowrap="" class="right">Fréquence de présence</th>{{#.}}<td class="centered">{{frequency}}</td>{{/.}}
+            </tr>
+            <tr>
+                <th nowrap="" class="right">Contrôle(s) exercé(s) sur site</th><td> </td>
+            </tr>
+            <tr><td nowrap="" class="checklistcaption">taxation</td>
+                {{#.}}
+                <td class="checklistitem {{#taxation}}oui{{/taxation}}"></td>
+                {{/.}}
+            </tr>
+            <tr><td nowrap="" class="checklistcaption">achètent des minerais</td>
+                {{#.}}
+                <td class="checklistitem {{#buying_minerals}}oui{{/buying_minerals}}"></td>
+                {{/.}}
+            </tr>
+            {{^isPDV}}
+            <tr><td nowrap="" class="checklistcaption">travaux forcés</td>
+                {{#.}}
+                <td class="checklistitem {{#forced_labour}}oui{{/forced_labour}}"></td>
+                {{/.}}
+            </tr>
+            <tr><td nowrap="" class="checklistcaption">creusent eux-mêmes</td>
+                {{#.}}
+                <td class="checklistitem {{#digging}}oui{{/digging}}"></td>
+                {{/.}}
+            </tr>
+            <tr><td nowrap="" class="checklistcaption">monopole de commerce</td>
+                {{#.}}
+                <td class="checklistitem {{#monopoly}}oui{{/monopoly}}"></td>
+                {{/.}}
+            </tr>
+            <tr><td nowrap="" class="checklistcaption">pillage</td>
+                {{#.}}
+                <td class="checklistitem {{#pillage}}oui{{/pillage}}"></td>
+                {{/.}}
+            </tr>
+            {{/isPDV}}
+        </table>
 </script>
 
 
@@ -237,7 +262,7 @@
             <td class="checklistitem {{womenpregnant}}"></td>
         </tr>
         <tr>
-            <td nowrap="" class="checklistcaption line">Travaille</td>
+            <td nowrap="" class="checklistcaption line">Type de travail :</td>
             <td line>{{womenwork}}</td>
         </tr>
         {{/.}}
@@ -255,7 +280,7 @@
             <td class="checklistitem {{child1518}}"></td>
         </tr>
         <tr>
-            <td nowrap="" class="checklistcaption line">Travailler entre 15 et 18</td>
+            <td nowrap="" class="checklistcaption line">Type de travail des enfants entre 15 et 18 :</td>
             <td line>{{child1518work}}</td>
         </tr>
         {{/.}}
@@ -268,10 +293,10 @@
     <table class="infotable tabbed padded" border="0" cellspacing="1" cellpadding="0">
         {{#.}}
         <tr>
-            <td nowrap="" width="10%" class="line"><b>{{name}}</b> {{#name_other}}<br>({{name_other}}){{/name_other}}</td>
-            <td class="line">
+            <td nowrap="" width="10%" class="line extrapadding"><b>{{name}}</b> {{#name_other}} ({{name_other}}){{/name_other}}</td>
+            <td class="line extrapadding">
                 {{frequency}}
-                {{#frequency_other}}<br>{{frequency}}{{/frequency_other}}
+                {{#frequency_other}} {{frequency_other}}{{/frequency_other}}
             </td>
         </tr>
         {{/.}}
@@ -288,12 +313,14 @@
                 {{available}}
             </td>
         </tr>
-        <tr>
-            <td nowrap="" width="10%" class="line"><b>Site</b></td>
-            <td class="line">
-                {{site}}
-            </td>
-        </tr>
+        {{#site}}
+            <tr>
+                <td nowrap="" width="10%" class="line"><b>Réseau</b></td>
+                <td class="line">
+                    {{site}}
+                </td>
+            </tr>
+        {{/site}}
         {{/.}}
     </table>
 </script>
@@ -325,22 +352,21 @@
 </script>
 
 
-
 <script id="pdvPopup" type="text/html">
     <div class="popup">
         <table class="doubleinfo" border="0">
             <tbody>
             <tr>
                 <td class="col1">
-                    <h3>Point de Vente: {{name}}</h3>
+                    <h3>Point de vente: {{name}}</h3>
                     <table class="infotable" border="0" cellspacing="0" cellpadding="0">
                         <tr>
                             <th>Substance(s)</th>
-                            <td>{{{mineral1}}} {{{mineral2}}} {{{mineral3}}} {{{mineral4}}}</td>
+                            <td>{{{mineral1}}}{{#mineral2}}, {{{mineral2}}}{{/mineral2}}{{#mineral3}}, {{{mineral3}}}{{/mineral3}}{{#mineral4}}, {{{mineral4}}}{{/mineral4}}{{#mineral5}}, {{{mineral5}}}{{/mineral5}}</td>
                         </tr>
                         <tr>
                             <th>Province</th>
-                            <td>{{{province}}} {{{province_old}}}</td>
+                            <td>{{{province}}}</td>
                         </tr>
                         <tr>
                             <th>Territoire</th>
@@ -359,12 +385,16 @@
                             <td>{{{village}}}</td>
                         </tr>
                         <tr>
-                            <th>Origin</th>
+                            <th>Origine</th>
                             <td>{{{origin}}}</td>
                         </tr>
                         <tr>
                             <th>Source</th>
                             <td class="source">{{{source}}}</td>
+                        </tr>
+                        <tr>
+                            <th>Code</th>
+                            <td class="source">{{{pcode}}}</td>
                         </tr>
                         <tr>
                             <th>Longitude</th>
@@ -374,16 +404,33 @@
                             <th>Latitude</th>
                             <td class="source">{{{fLatitude}}}</td>
                         </tr>
+                        {{#consolidated.visits}}
+                        <tr>
+                            <th class="multiline">Date visite</th>
+                            <td class="multiline">{{{consolidated.visits}}}</td>
+                        </tr>
+                        {{/consolidated.visits}}
+                        <tr>
+                            <th></th>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <td>&nbsp;</td>
+                        </tr>
                     </table>
                 </td>
                 <td class="col2">
                     <div class="navhorizontal">
                         <div class="buttons">
-                            <div class="navitem active" id="tab_armed_presence">Présence armée</div><div class="navitem" id="tab_state_service">Services de l'Etat</div>
+                            <div class="navitem active" id="tab_armed_presence"><span>Présence armée</span></div><div class="navitem" id="tab_state_service"><span>Services</span></div>
                         </div>
                     </div>
                     <div class="popuptab">
                         <h3></h3>
+                        <div class="popuptabyears">
+
+                        </div>
                         <div class="popuptabcontent">
 
                         </div>
@@ -397,14 +444,14 @@
 
 <script id="pdvPopupLoading" type="text/html">
     <div class="popup">
-        <h3>Point de Vente: {{name}}</h3>
+        <h3>Point de vente: {{name}}</h3>
         Chargement ...
     </div>
 </script>
 
 <script id="pdvHoverPopup" type="text/html">
     <div class="popup">
-        <h3>Point de Vente: {{name}}</h3>
+        <h3>Point de vente: {{name}}</h3>
         <table>
             {{#armedgroup}}
             <tr>
@@ -433,6 +480,14 @@
         <h3>Titre minier</h3>
         <table>
             <tr>
+                <th>Code</th>
+                <td>{{{name}}}</td>
+            </tr>
+            <tr>
+                <th>Type</th>
+                <td>{{{fType}}}</td>
+            </tr>
+            <tr>
                 <th>Parties</th>
                 <td>{{{parties}}}</td>
             </tr>
@@ -447,6 +502,21 @@
             <tr>
                 <th nowrap="nowrap">Date d'expiration&nbsp;</th>
                 <td>{{{date_de1}}}</td>
+            </tr>
+        </table>
+    </div>
+</script>
+<script id="protectedAreaPopup" type="text/html">
+    <div class="popup">
+        <h3>Aire protégée</h3>
+        <table>
+            <tr>
+                <th>Nom</th>
+                <td>{{{name}}}</td>
+            </tr>
+            <tr>
+                <th>Source</th>
+                <td>{{{source}}}</td>
             </tr>
         </table>
     </div>

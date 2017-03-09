@@ -121,6 +121,8 @@ function cleanString(s){
 }
 
 function decimalToDegrees(decimal,LatLong){
+    var limitSecondsFraction = true;
+
     var sign = 1;
     if (isNaN(decimal)) decimal=0;
     if (decimal<0) sign = -1;
@@ -146,10 +148,12 @@ function decimalToDegrees(decimal,LatLong){
         decimalAbs=0;
     }
 
-    var degreeString = ((Math.floor(decimalAbs/1000000) * sign) + '&deg; ' +
-        Math.floor(((decimalAbs/1000000) - Math.floor(decimalAbs/1000000)) * 60)  + '\' ' +
-        (Math.floor(((((decimalAbs/1000000) - Math.floor(decimalAbs/1000000)) * 60) - Math.floor(((decimalAbs/1000000) - Math.floor(decimalAbs/1000000)) * 60)) * 100000) *60/100000 ) + '&quot;') +
-        kwadrantChar;
+    var degree = Math.floor(decimalAbs/1000000) * sign;
+    var minutes = Math.floor(((decimalAbs/1000000) - Math.floor(decimalAbs/1000000)) * 60);
+    var seconds = (Math.floor(((((decimalAbs/1000000) - Math.floor(decimalAbs/1000000)) * 60) - Math.floor(((decimalAbs/1000000) - Math.floor(decimalAbs/1000000)) * 60)) * 100000) *60/100000 );
+    if (limitSecondsFraction) seconds = Math.round(seconds*10)/10;
+
+    var degreeString = degree + '&deg; ' + minutes + '\' ' + seconds + '&quot;' + kwadrantChar;
 
     degreeString = degreeString.split(".").join(",");
 

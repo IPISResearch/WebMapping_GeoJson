@@ -6,7 +6,11 @@
 
     <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
 
-    <script src='script/external/mapbox.js'></script>
+    <script>
+        var MAPCONTEXT = "SAESSCAM";
+    </script>
+
+    <script src='script/external/mapbox.js?v2'></script>
     <script type="text/javascript" src="script/external/cluster/leaflet.markercluster-src.js"></script>
 
     <script type="text/javascript" src="script/external/jquery.min.js"></script>
@@ -26,6 +30,14 @@
     <link href='//api.tiles.mapbox.com/mapbox.js/v1.6.1/mapbox.css' rel='stylesheet' />
     <link href='script/external/cluster/MarkerCluster.css' rel='stylesheet' />
     <link href='script/external/cluster/MarkerCluster.Default.css' rel='stylesheet' />
+
+
+    <!-- C3 and D3 -->
+    <script type="text/javascript" src="script/external/c3/d3_3.5.6_min.js"></script>
+    <link href="script/external/c3/c3.min.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="script/external/c3/c3.min.js"></script>
+
+
     <link href='style/main.css?v14' rel='stylesheet' />
 
     <!--[if lte IE 8]>
@@ -45,7 +57,20 @@
 </div>
 <div id="mapUI" class="hidden">
     <div id='map'>
-        <div id='legend'><img  src="images/legende.png?v2" border=0></div>
+
+        <div id='legend'>
+            <div class="charts">
+                <h3>Sites miniers visibles</h3>
+                <div class="label">
+                    <span id="chart_current"></span> de <span id="chart_total"></span> sites miniers
+                </div>
+                <div id="chart1"></div>
+
+            </div>
+
+
+
+        </div>
     </div>
     <div id='searchbox'>
         <a class="control-search" href="#">
@@ -104,11 +129,13 @@
                     </div>
                 </div>
 
+                <div class="hidden">
                 <h2>Année de visite</h2>
                 <div class="mainlayergroup">
                     <div class="layergroup">
                         <div class="layerlist" id="yearsList" data-layer="mines"></div>
                     </div>
+                </div>
                 </div>
                 <h2>Substances minérales</h2>
                 <div class="mainlayergroup">
@@ -128,26 +155,27 @@
                     </div>
                 </div>
 
-                <h2>Présence service</h2>
-                <div class="mainlayergroup">
-                    <div class="layergroup">
-                        <div class="datafilter" data-filter="qualification" data-value="green" id="vqualification_green">SAESSCAM</div>
-                        <div class="datafilter" data-filter="qualification" data-value="yellow" id="vqualification_yellow">Division des mines</div>
-                        <div class="datafilter" data-filter="qualification" data-value="red" id="vqualification_red">Cooperative</div>
-                        <div class="datafilter" data-filter="qualification" data-value="grey" id="vqualification_grey">Itsci</div>
-                        <div class="datafilter" data-filter="qualification" data-value="grey" id="vquazzlification_grey">Couverture téléphone</div>
+                <div class="hidden">
+                    <h2>Présence service</h2>
+                    <div class="mainlayergroup">
+                        <div class="layergroup">
+                            <div class="datafilter" data-filter="qualification" data-value="green" id="vqualification_green">SAESSCAM</div>
+                            <div class="datafilter" data-filter="qualification" data-value="yellow" id="vqualification_yellow">Division des mines</div>
+                            <div class="datafilter" data-filter="qualification" data-value="red" id="vqualification_red">Cooperative</div>
+                            <div class="datafilter" data-filter="qualification" data-value="grey" id="vqualification_grey">Itsci</div>
+                            <div class="datafilter" data-filter="qualification" data-value="grey" id="vquazzlification_grey">Couverture téléphone</div>
+                        </div>
                     </div>
                 </div>
-
 
                 <h2>Qualification</h2>
                 <div class="mainlayergroup">
                     <div class="layergroup">
                         <div class="layerlist" id="qualificationList" data-layer="mines">
-                            <div class="datafilter" data-filter="qualification" data-value="green" id="qualification_green">Vert</div>
-                            <div class="datafilter" data-filter="qualification" data-value="yellow" id="qualification_yellow">Jaune</div>
-                            <div class="datafilter" data-filter="qualification" data-value="red" id="qualification_red">Rouge</div>
-                            <div class="datafilter" data-filter="qualification" data-value="grey" id="qualification_grey">Aucune</div>
+                            <div class="datafilter" data-filter="qualification" data-value="vert" id="qualification_green">Vert</div>
+                            <div class="datafilter" data-filter="qualification" data-value="jaune" id="qualification_yellow">Jaune</div>
+                            <div class="datafilter" data-filter="qualification" data-value="rouge" id="qualification_red">Rouge</div>
+                            <div class="datafilter" data-filter="qualification" data-value="--" id="qualification_grey">Aucune</div>
                         </div>
                     </div>
                 </div>
@@ -184,27 +212,29 @@
 
                 <div class="layerinfotext">
                     <div style="margin-top: 20px">
-                        La "Cartographie des sites miniers d’exploitation artisanale de l’Est de la RD Congo"
-                        est financée par <a class="1" href=http://www.prominesrdc.cd/> <b>PROMINES</b> </a> et <a href="http://diplomatie.belgium.be"><b>le Ministère des Affaires étrangères de Belgique</b>.</a>
+                        Le développement de la base de données du SAESSCAM est financé
+                        en 2015-2016 par <a class="1" href=http://www.prominesrdc.cd/> <b>PROMINES</b> </a>.
                         <br>
                         <br>Système géodésique: WGS 84
-                        <br>Collecte des données: mars 2013 à mars 2014, avril à juin 2015
-                        <br>Date de production: juillet 2015
+                        <br>Collecte des données de production par les Antennes du SAESSCAM
+                        <br>Date de production: 2015-2016
                         <br><br>
-                        Sources de données géographiques : IPIS, Référentiel Géographique Commun (<a href="www.rgc.cd" target="_blank">www.rgc.cd</a>)<br>
+                        Sources de données géographiques : <a href="http://ipisresearch.be/" target="_blank">IPIS</a>, <a href="http://www.cami.cd/" target="_blank">CAMI</a>,
+                        <a href="http://www.rgc.cd" target="_blank">RGC</a> et <a href="http://www.bgr.bund.de/" target="_blank">BGR</a>.
+                        <br>
                         IPIS ne saurait être tenu responsable de la qualité des limites, des noms et des désignations utilisés sur cette carte.
                         <br><br>
                         <a href="javascript://;" id="disclaimerbutton"><b>Disclaimer</b></a>
 
 
-
                         <h3>Contacts</h3>
-                        <h4>SAESSCAM</h4>
-                        <div style="padding-left:32px">
-                            ....
-                            <br><br>
-                        </div>
+                        <ul>
+                            <li><a href="http://www.saesscam.cd/" target="_blank">SAESSCAM</a></li>
+                            <li><a href="https://www.mines-rdc.cd/fr/" target="_blank">Ministère des Mines</a></li>
+                            <li><a href="http://www.cami.cd/" target="_blank">Cadastre Minier</a></li>
+                        </ul>
 
+                        <br><br>
 
                     </div>
 

@@ -39,6 +39,10 @@ var MapService = (function() {
 
     var currentPopupData;
 
+    var currentActiveLine;
+    var currentActiveLineStyle;
+
+    var chart;
 
     /*
 
@@ -67,7 +71,66 @@ var MapService = (function() {
                 hoverTemplate: "minesHoverPopup",
                 checkForDuplicatesIn: ['mines'],
                 showClusters: false,
-                hasPresetFilters:true
+                presetFilterLayers:[
+                    "years","mineral","goldtype","army","services","worker","qualification"
+                ],
+                onFilter:function(){
+
+                    var max = dataset["mines"].totalLayerCount;
+                    var mines = dataset["mines"].getLayers();
+                    var current = mines.length;
+
+
+                    $("#chart_current").html(current);
+                    $("#chart_total").html(max);
+                    $("#legend").show();
+
+                    var data = {};
+                    var chartData = {
+                        columns: [],
+                        colors: [],
+                        type : 'donut'
+                    };
+                    mines.forEach(function(mine){
+                        var mineral = mine.feature.properties.mineral || "zz";
+                        data[mineral] = (data[mineral] || 0) + 1;
+                    });
+
+                    for (var key in data){
+                        if (data.hasOwnProperty(key)){
+                            chartData.columns.push([translations[key],data[key]]);
+                            chartData.colors[translations[key]] = translations["color_" + key];
+                        }
+                    }
+
+                    if (chart) chart = chart.destroy();
+
+
+                    chartData.type = 'donut';
+                    chart = c3.generate({
+                        bindto: '#chart1',
+                        size:{
+                            height: 300,
+                            width: 190
+                        },
+                        data: chartData,
+                        donut: {
+                            title: current
+                        },
+                        tooltip: {
+                            format: {
+                                title: function (d) { return 'Substance&nbsp;minérale&nbsp;principale'},
+                                value: function (value, ratio, id) {
+                                    return value + "&nbsp;site&nbsp;miniers";
+                                }
+                                // value: d3.format(',') // apply this format to both y and y2
+                            }
+                        }
+                    });
+
+
+
+                }
             },
             sellingpoints:{
                 id: 2,
@@ -90,7 +153,6 @@ var MapService = (function() {
                 fillType: FILLTYPE.LAKE,
                 zIndex : 1,
                 ignoreInUrl: true
-
             },
             borders:{
                 id: 4,
@@ -104,23 +166,120 @@ var MapService = (function() {
                 mapBoxId: "ipisresearch.fe4df64e",
                 visible: true
             },
-            armyPositions: {
-                id: 6,
-                name: "armyPositions",
+            concessions: {
+                id: 8,
+                name: "concessions",
                 visible: false,
-                url: "data/Groupesarmes_IPISv2.geojson",
+                url: "data/titres_2016.geojson",
+                fillType: FILLTYPE.CONCESSION,
+                zIndex : 10,
+                popupTemplate: "concessionPopup",
+                presetFilterLayers: ["concessions"]
+            },
+            destinations:{
+                id: 9,
+                name: "destinations",
+                visible: false,
+                lineType: LINETYPE.MINERALDESTINATION,
+                url: Config.getIPISAPIurl("cod/destinations"),
+                zIndex : 1100,
+                presetFilterLayers: ["destinations"],
+                onShowHide: function(visible){
+                    // push overlay in front of markers
+                    //$(".leaflet-overlay-pane").toggleClass("front",visible);
+                },
+                onAdd : function(line,layer){
+                    var co = line.feature.geometry.coordinates;
+                    if (co.length == 2){
+                        var strength = (Math.random() * 50) - 25;
+                        var style = {
+                            color: '#3f8846',
+                            opacity: '0.6',
+                            weight: 1.5
+                        };
+                        var activeStyle = {
+                            color: '#3f8846',
+                            opacity: '1',
+                            weight: 6
+                        };
+                        var segmentCount = 8;
+
+                        if (line.feature.properties.type == '2'){
+                            style = {
+                                color: '#ba4904',
+                                opacity: '0.3',
+                                weight: 1.5
+                            };
+                            activeStyle = {
+                                color: '#ba4904',
+                                opacity: '1',
+                                weight: 6
+                            };
+                        }
+
+                        if (line.feature.properties.type == '3'){
+                            style = {
+                                color: '#1f679d',
+                                opacity: '0.8',
+                                weight: 2.5
+                            };
+                            activeStyle = {
+                                color: '#1f679d',
+                                opacity: '1',
+                                weight: 10
+                            };
+                            segmentCount = 3;
+                            strength = 0;
+                        }
+
+                        var curve = L.geoJson(createCurve(co[0],co[1],segmentCount,strength),{style: style});
+
+                        curve.on('click',function(e) {
+                            var targetStyle = activeStyle;
+                            var targetLine = curve;
+                            if (currentActiveLine){
+                                currentActiveLine.setStyle(currentActiveLineStyle);
+                                if (currentActiveLine == curve){
+                                    targetStyle = style;
+                                    targetLine = undefined;
+                                }
+                            }
+
+                            currentActiveLine = targetLine;
+                            currentActiveLineStyle = style;
+                            curve.setStyle(targetStyle);
+                        });
+
+                        layer.addLayer(curve);
+                        layer.removeLayer(line);
+                    }
+                }
+            },
+            fardc20132015:{
+                id: 10,
+                name: "fardc20132015",
+                visible: false,
+                url: "http://ipis.annexmap.net/api/geojson/cod_fardc20132015.php",
+                fillType: FILLTYPE.ARMED_GROUP_FARDC,
+                zIndex : 10
+            },
+            protectedAreas: {
+                id: 12,
+                name: "protectedAreas",
+                visible: false,
+                url: "data/protectedareas_wri.geojson",
+                fillType: FILLTYPE.PROTECTED_AREA,
+                zIndex : 0,
+                popupTemplate: "protectedAreaPopup"
+            },
+            armyPositions20132015: {
+                id: 13,
+                name: "armyPositions20132015",
+                visible: false,
+                url: "http://ipis.annexmap.net/api/geojson/cod_armedgroups20132015.php?geojson",
                 fillType: FILLTYPE.ARMED_GROUPS,
                 zIndex : 10,
                 popupTemplate: "armedGroupPopup"
-            },
-            concessions: {
-                id: 7,
-                name: "concessions",
-                visible: false,
-                url: "data/titres.geojson",
-                fillType: FILLTYPE.CONCESSION,
-                zIndex : 10,
-                popupTemplate: "concessionPopup"
             }
         };
 
@@ -128,7 +287,7 @@ var MapService = (function() {
 
 END OF CONFIG
 
-everything should be generic
+everything below should be generic
 
  */
 
@@ -143,7 +302,6 @@ everything should be generic
             baseLayer.satelite = L.mapbox.tileLayer(MAPBOX_BASELAYER.satelite_no_places);
             baseLayer.terrain = L.mapbox.tileLayer(MAPBOX_BASELAYER.terrain_no_places);
             baseLayer.streets = L.mapbox.tileLayer(MAPBOX_BASELAYER.terrain_places);
-
 
 
             baseLayer.satelite.setZIndex(1);
@@ -193,14 +351,14 @@ everything should be generic
             hasFilterPreset = loadFilterPreset;
 
             // ignore until this works with autogenerated database filters
-            loadPreset = false;
-            loadFilterPreset = false;
+            //loadPreset = false;
+            //loadFilterPreset = false;
 
             if (loadPreset){
                 // clear UI
-                $(".layerlist").addClass("inactive");
-                $(".layergroup").slideUp();
-                $(".layergrouptitle").addClass("closed");
+                //$(".layerlist").addClass("inactive");
+                //$(".layergroup").slideUp();
+                //$(".layergrouptitle").addClass("closed");
             }
 
             if (loadFilterPreset){
@@ -312,6 +470,9 @@ everything should be generic
             dataset[properties.name] =
             L.mapbox.featureLayer()
                 .on("ready",function(){
+
+                    dataset[properties.name].totalLayerCount  = dataset[properties.name].getLayers().length;
+
                     if (properties.onShowHide){
                         properties.onShowHide(true);
                     }
@@ -324,10 +485,23 @@ everything should be generic
                         UI.initLayerListFilter("incidents");
                     }
 
+                    if (properties.presetFilterLayers && properties.presetFilterLayers.length){
+                        properties.presetFilterLayers.forEach(function(layerId){
+                            UI.initLayerListFilter(layerId);
+                        });
+                    }
+
+                    //if (properties.hasInitalFilter){
+                    //    UI.initLayerListFilter("years");
+                    //}
+
+
+
                     var visibleLayer = dataset[properties.name];
+                    //console.error("set z index of " + properties.name + " to " + properties.zIndex);
+                    visibleLayer.addTo(map).setZIndex(properties.zIndex || 1);
 
-                    visibleLayer.addTo(map).setZIndex(1);
-
+                    //visibleLayer.bringToFront();
 
                     loadNextLayer();
 
@@ -341,7 +515,8 @@ everything should be generic
                     if (t.type == "Point" && properties.iconType)        marker.setIcon(getMarkerIcon(p,properties.iconType));
                     if (properties.lineType)        marker.setStyle(getLineStyle(p,properties.lineType));
                     if (properties.fillType)        properties.style = getFillStyle(p,properties.fillType);
-                    if (t.type != "Point" && properties.style)           marker.setStyle(properties.style);
+                    if (t.type != "Point" && properties.style)           marker.setStyle(properties.style);;
+
                     if (properties.popupTemplate){
                         if (properties.checkForDuplicatesIn){
                             // custom onclick to check for markers on the same geo position
@@ -388,7 +563,11 @@ everything should be generic
                     if (properties.hoverTemplate){
                         marker.on('mouseover',function(e) {
                             if (popupModus == "instant"){
+                                //console.error(p);
+                                // DIRTY!! Mustache handles empty strings not as false
+                                if (p && p.armygroup && p.armedgroup == "") p.armedgroup = false;
                                 var popupHTML = Mustache.render(Templates[properties.hoverTemplate],p);
+
                                 marker.unbindPopup();
                                 marker.bindPopup(popupHTML).openPopup();
                             }
@@ -444,6 +623,7 @@ everything should be generic
             var anchor = '';
             var popupAnchor;
             var customClassName='';
+            var iconColor;
 
             if (iconType == ICONTYPE.MINE){
                 size = 'mini';
@@ -484,22 +664,34 @@ everything should be generic
                     symbol = "triangle";
                     type = "custom";
 
+                    iconColor = "";
                     if (validation.indexOf('green') > -1) iconColor = "green";
+                    if (validation.indexOf('vert') > -1) iconColor = "green";
                     if (validation.indexOf('yellow') > -1) iconColor = "yellow";
+                    if (validation.indexOf('jaune') > -1) iconColor = "yellow";
                     if (validation.indexOf('red') > -1) iconColor = "red";
+                    if (validation.indexOf('rouge') > -1) iconColor = "red";
                 }
 
                 switch(properties.mineral){
                     case "amethyst": color = '9966CB'; break;
                     case "gold": color = 'DAA520'; break;
+                    case "or": color = 'DAA520'; break;
                     case "wolframite": color = '8B4513'; break;
+                    case "wo": color = '8B4513'; break;
                     case "coltan": color = '1E90FF'; break;
+                    case "ta": color = '1E90FF'; break;
                     case "monazite": color = 'B0C4DE'; break;
                     case "tourmaline": color = '006600'; break;
                     case "diamond": color = 'FFDEAD'; break;
+                    case "da": color = 'FFDEAD'; break;
                     case "cassiterite": color = 'FFA07A'; break;
+                    case "ca": color = 'FFA07A'; break;
                     case "copper": color = 'C87533'; break;
+                    case "cu": color = 'C87533'; break;
+                    case "manganese": color = 'ed79d2'; break;
                     case "zzz_other": color = '000000'; break;
+                    case "zz": color = '000000'; break;
                 }
 
                 if (properties.workers > 499) {
@@ -509,6 +701,7 @@ everything should be generic
                 if (properties.workers < 50){
                     size = "small";
                 }
+
 
                 if (type == "custom"){
                     url = "images/pins/pin-" + size.substr(0,1) + "-" + symbol + "-" + color;
@@ -524,16 +717,20 @@ everything should be generic
                         anchor = [10, 25];
                         popupAnchor = [0, -25];
                     }
+
                     if (size == "medium"){
                         sizeArray = [30, 70];
                         anchor = [15, 35];
                         popupAnchor = [0, -35];
                     }
+
                     if (size == "large"){
                         sizeArray = [35, 90];
                         anchor = [17, 45];
                         popupAnchor = [0, -45];
                     }
+
+
                 }
 
             }
@@ -801,6 +998,19 @@ everything should be generic
                     }
                 }
 
+                if (lineType == LINETYPE.MINERALDESTINATION){
+                    color = '#3f8846';
+                    opacity = '0.6';
+                    weight = 2;
+                    switch (properties.type){
+                        case "2":
+                            color = "#ba4904";
+                            weight = 2;
+                            opacity = '0.3';
+                            break;
+                    }
+                }
+
             return {
                 color: color,
                 opacity: opacity,
@@ -815,6 +1025,10 @@ everything should be generic
             // note : rivers and roads not used anymore:  have moved to a tileLayer
 
             var color = "#000";
+            var opacity =  0.8;
+            var fillOpacity =  0.4;
+            var fillOpacityHover =  0.8;
+
 
 
             if (fillType== FILLTYPE.MINING_CONCESSION){
@@ -843,7 +1057,6 @@ everything should be generic
             }
 
 
-
             if (fillType== FILLTYPE.ETHNIC){
                 switch (properties.Type){
                     case "etnic1": color = "#ae0a00"; break;
@@ -864,15 +1077,39 @@ everything should be generic
 
             if (fillType== FILLTYPE.ARMED_GROUPS){
                 switch (properties.Type){
-                    case "n": color = "#3aae67"; break;
+                    case "n": color = "#a79ee8"; break;
                     case "e": color = "#ae730b"; break;
                 }
             }
+
+
+            if (fillType== FILLTYPE.ARMED_GROUP_FARDC){
+                color = "#324483";
+                opacity = 0.4;
+                fillOpacity = 0.4;
+                fillOpacityHover = 0.4;
+            }
+
+            if (fillType== FILLTYPE.ARMED_GROUP_FARDC2){
+                color = "#095d83";
+                opacity = 0.4;
+                fillOpacity = 0.4;
+                fillOpacityHover = 0.4;
+            }
+
 
             if (fillType== FILLTYPE.LAKE){
                 color = "#3E99D4";
                 opacity = 0.7;
                 fillOpacity = 0.7;
+                fillOpacityHover = 0.7;
+            }
+
+            if (fillType== FILLTYPE.PROTECTED_AREA){
+                color = "#12703a";
+                opacity = 0.3;
+                fillOpacity = 0.3;
+                fillOpacityHover = 0.4;
             }
 
 
@@ -903,19 +1140,23 @@ everything should be generic
                         color = "#FF999e" ;
                 }
 
+                properties.fType = translations["titreType_" + properties.group] || properties.type;
+
             }
 
 
             return {
                     color: color,
-                    opacity: 0.8,
+                    opacity: opacity,
                     weight: 1,
                     fillColor: color,
                     fill:true,
-                    fillOpacity: 0.4,
-                    onMouseOver: {fillOpacity: 0.8},
-                    onMouseOut: {fillOpacity: 0.4}
-            }
+                    fillOpacity: fillOpacity,
+                    onMouseOver: {fillOpacity: fillOpacityHover},
+                    onMouseOut: {fillOpacity: fillOpacity}
+            };
+
+
 
         }
 
@@ -945,6 +1186,12 @@ everything should be generic
                             if (result.longitude) result.fLongitude = decimalToDegrees(result.longitude,"lon");
 
 
+                            var imageUrl;
+                            if (result.images && result.images.length && result.images[0].picture && result.images[0].picture.length){
+                                imageUrl = result.images[0].picture;
+                                result.imageUrl = imageUrl;
+                            }
+
                             result.consolidated = result.consolidated || {};
 
                             // visit dates
@@ -955,12 +1202,12 @@ everything should be generic
                                     var visit = visits[i];
                                     if (visit.indexOf(":")>0){
                                         visit=visit.replace(" 00:00:00+00","");
-                                        console.error(visit);
                                         var parts = visit.split(":");
                                         if (parts.length>0){
                                             if (parts[1].indexOf("-")>0){
                                                 // format date
                                                 var dateparts = parts[1].split("-");
+                                                dateparts[2] = dateparts[2].replace(" 00","");
                                                 parts[1] = dateparts[2] + "/" + dateparts[1] + "/" + dateparts[0];
                                             }
                                             v.push(parts[1]);
@@ -979,22 +1226,87 @@ everything should be generic
                             }
 
                             var q = "Aucune";
+                            if (result.classification) result.consolidated.qualification = result.classification;
+                            if (result.classification_annee){
+                                if (result.classification_annee == "0") result.classification_annee = undefined;
+                            }
                             if (result.consolidated.qualification){
                                 switch(result.consolidated.qualification){
                                     case "red":
+                                    case "rouge":
                                         q = "Rouge";
                                         break;
                                     case "green":
+                                    case "vert":
                                         q = "Vert";
                                         break;
                                     case "yellow":
+                                    case "jaune":
                                         q = "Jaune";
                                         break;
                                 }
                             }
                             result.consolidated.qualification = q;
 
+                            if (result.consolidated.itsci && result.consolidated.itsci == 'x'){
+                                result.consolidated.itsci_decoded = 'Actif';
+                            }else{
+                                result.consolidated.itsci_decoded = false;
+                            }
+
+                            result.isPDV = url.indexOf("sellingpoint")>0;
                             currentPopupData = result;
+
+
+
+                            if (result.production && result.production.months && result.production.months.length>2){
+                                var month1 = result.production.months[0];
+                                var month2 = result.production.months[1];
+                                var month3 = result.production.months[2];
+                                if (month1<10) month1 = "0" + month1;
+                                if (month2<10) month2 = "0" + month2;
+                                if (month3<10) month3 = "0" + month3;
+
+                                result.production["month" + month1] = result.production["month" + month1] || [];
+                                result.production["month" + month2] = result.production["month" + month2] || [];
+                                result.production["month" + month3] = result.production["month" + month3] || [];
+
+                                result.productionData = [];
+                                result.production.minerals.forEach(function(mineral){
+                                    var unit = "kg";
+                                    if (mineral == "da") unit = "carat";
+                                    if (mineral == "or") unit = "gramme";
+
+                                    var m1 = result.production["month" + month1][mineral] || '-';
+                                    var m2 = result.production["month" + month2][mineral] || '-';
+                                    var m3 = result.production["month" + month3][mineral] || '-';
+                                    if (m1!='-') m1 += unit;
+                                    if (m2!='-') m2 += unit;
+                                    if (m3!='-') m3 += unit;
+
+
+                                    result.productionData.push({
+                                        mineral: translations[mineral],
+                                        unit: unit,
+                                        month1: m1,
+                                        month2: m2,
+                                        month3: m3
+                                    })
+                                });
+
+                                result.monthName1 = translations["month" + month1];
+                                result.monthName2 = translations["month" + month2];
+                                result.monthName3 = translations["month" + month3];
+
+                                result.workerData1 = "-";
+                                result.workerData2 = "-";
+                                result.workerData3 = result.creuseurs || "-";
+                                if (result.workerData3 == "0") result.workerData3 = "-";
+
+
+                            }
+
+                            if (result.minerai) result.mineral = translations[result.minerai];
 
 
                             popupHTML = Mustache.render(Templates[datasetProperties.popupTemplate],result);
@@ -1010,11 +1322,13 @@ everything should be generic
                             if (andOpen) popup.openOn(map);
                             popupModus = 'fixed';
 
-                            POPUP.renderPopupTab("tab_armed_presence");
+                            if (imageUrl){
+                                POPUP.renderPopupTab("tab_images");
+                            }else{
+                                if (Config.showArmy) POPUP.renderPopupTab("tab_armed_presence");
+                            }
 
                         }
-
-
                     }
                 });
 
@@ -1279,7 +1593,7 @@ everything should be generic
                     }
                 }
             }
-/*
+
             $(".persistantfilter").each(function(index) {
                 var filterId = this.getAttribute("data-filterId");
                 if (filterId){
@@ -1287,7 +1601,7 @@ everything should be generic
                 }
             });
             if (filterIdString != "") filterIdString = filterIdString.substr(1);
-*/
+
 
 
             var timeFilterElement = $("#timefilter");
@@ -1468,7 +1782,6 @@ everything should be generic
         }
 
         distinct.sort();
-        console.error(distinct);
     }
 
     // utility function to generate a piece to the UI for filtering layers
@@ -1544,6 +1857,64 @@ everything should be generic
         return currentPopupData;
     }
 
+    function createCurve(point1,point2,segmentCount,strength){
+        var x1 = point1[0];
+        var y1 = point1[1];
+        var x2 = point2[0];
+        var y2 = point2[1];
+        var segmentX = (x1 - x2)/segmentCount;
+        var segmentY = (y1 - y2)/segmentCount;
+
+        var angle = Math.atan2(y1 - y2, x1  - x2);
+        var sin = Math.sin(angle);
+        var cos = Math.cos(angle);
+
+        var distance = Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+
+        var power = (strength / 100) * distance;
+
+        coordinates = [];
+        coordinates.push(point1);
+
+        for (var i = 1; i<segmentCount; i++){
+            var x = x1  - (segmentX*i);
+            var y = y1 - (segmentY*i);
+
+            var offsetPower = Math.sin((i/segmentCount) * Math.PI);
+
+            x -= offsetPower * sin * power;
+            y -= offsetPower * cos * power;
+
+            coordinates.push([x,y]);
+        }
+
+        coordinates.push(point2);
+
+        return {
+            "geometry": {
+                "type": 'LineString',
+                "coordinates": coordinates },
+            "type": "Feature",
+            "properties": {}
+        };
+    }
+
+    function generateChart(){
+        chart = c3.generate({
+            bindto: '#chart1',
+            data: {
+                columns: [
+                    ['data1', 30],
+                    ['data2', 50]
+                ],
+                type : 'donut'
+            },
+            donut: {
+                title: "50"
+            }
+        });
+    }
+
         return{
             init: init,
             showLayers: showLayers,
@@ -1558,6 +1929,8 @@ everything should be generic
             generateFilterCode: generateFilterCode,
             listLayer: listLayer,
             updateCluster: updateCluster,
-            getCurrentPopupData: getCurrentPopupData
+            getCurrentPopupData: getCurrentPopupData,
+            createCurve: createCurve,
+            generateChart: generateChart
         }
 }());

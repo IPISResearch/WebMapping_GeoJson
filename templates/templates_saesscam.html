@@ -3,74 +3,104 @@
         <table class="info" border="0">
             <tbody>
             <tr>
-                <td class="col1">
-                    <h3>Mine: {{name}}</h3>
+                <td class="col1 p12">
+                    <h3>Mine: {{nom}}</h3>
 
                     <table class="infotable" border="0" cellspacing="0" cellpadding="0">
                         <tr>
-                            <th>Substance(s)</th>
-                            <td>{{{mineral1}}} {{{mineral2}}}</td>
+                            <th class="dark">Substance(s)</th>
+                            <td>{{{mineral}}}</td>
                         </tr>
                         <tr>
-                            <th>Province</th>
-                            <td>{{{province}}} {{{province_old}}}</td>
+                            <th class="dark">Province</th>
+                            <td>{{{province}}}</td>
                         </tr>
                         <tr>
-                            <th>Territoire</th>
+                            <th class="dark">Territoire</th>
                             <td>{{{territoire}}}</td>
                         </tr>
+                        {{#origin}}
                         <tr>
-                            <th>Collectivité</th>
-                            <td>{{{collectivite}}}</td>
-                        </tr>
-                        <tr>
-                            <th>Groupement</th>
-                            <td>{{{groupement}}}</td>
-                        </tr>
-                        <tr>
-                            <th>Village</th>
-                            <td>{{{village}}}</td>
-                        </tr>
-                        <tr>
-                            <th>Origin</th>
+                            <th class="dark">Origin</th>
                             <td>{{{origin}}}</td>
                         </tr>
+                        {{/origin}}
+                        {{#source}}
                         <tr>
-                            <th>Source</th>
+                            <th class="dark">Source</th>
                             <td class="source">{{{source}}}</td>
                         </tr>
+                        {{/source}}
                         <tr>
-                            <th>Longitude</th>
-                            <td>{{{fLongitude}}}</td>
+                            <th class="dark">longitude</th>
+                            <td nowrap="">{{{fLongitude}}}</td>
                         </tr>
                         <tr>
-                            <th class="multiline">Latitude</th>
-                            <td class="multiline">{{{fLatitude}}}</td>
+                            <th class="multiline dark" nowrap="">Latitude</th>
+                            <td class="multiline" nowrap="">{{{fLatitude}}}</td>
                         </tr>
                         <tr>
-                            <th class="multiline">Nombre de creuseurs</th>
-                            <td class="multiline">{{{consolidated.numberofworkers}}}</td>
+                            <th class="multiline dark">Nombre de creuseurs</th>
+                            <td class="multiline">{{{creuseurs}}}</td>
                         </tr>
                         <tr>
-                            <th class="multiline">Nombre de puits</th>
-                            <td class="multiline">{{{consolidated.pits}}}</td>
+                            <th class="multiline dark">Nombre de puits</th>
+                            <td class="multiline">{{{puits}}}</td>
                         </tr>
                         {{#consolidated.itsci}}
                         <tr>
-                            <th class="multiline">Itsci</th>
+                            <th class="multiline dark">Itsci</th>
                             <td class="multiline">{{{consolidated.itsci}}}</td>
                         </tr>
                         {{/consolidated.itsci}}
                         <tr>
-                            <th class="multiline">Qualification</th>
+                            <th class="multiline dark">Qualification</th>
                             <td class="multiline">{{{consolidated.qualification}}}</td>
                         </tr>
-                        {{#consolidated.arrete}}
+                        {{#classification_annee}}
                         <tr>
-                            <th class="multiline">Arrêté</th>
-                            <td class="multiline">{{{consolidated.arrete}}}</td>
+                            <th class="multiline dark">Qualification annee</th>
+                            <td class="multiline">{{{classification_annee}}}</td>
                         </tr>
-                        {{/consolidated.arrete}}
+                        {{/classification_annee}}
+                        {{#arrete}}
+                        <tr>
+                            <th class="multiline dark">Arrêté</th>
+                            <td class="multiline">{{{arrete}}}</td>
+                        </tr>
+                        {{/arrete}}
+                    </table>
+                </td>
+                <td class="col2 p12">
+                    <h3>Production du territoire {{territoire}}</h3>
+
+                    <table class="infotable" border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <th class="dark">Substance</th>
+                            <th>{{monthName1}} 2016</th>
+                            <th>{{monthName2}} 2016</th>
+                            <th>{{monthName3}} 2016</th>
+                        </tr>
+                        {{#productionData}}
+                        <tr>
+                            <td class="right dark">{{mineral}}:</td>
+                            <td class="centered">{{month1}}</td>
+                            <td class="centered">{{month2}}</td>
+                            <td class="centered">{{month3}}</td>
+                        </tr>
+                        {{/productionData}}
+                        <tr>
+                            <th class="dark"><br>&nbsp;<br></th>
+                            <td class="centered"></td>
+                            <td class="centered"></td>
+                            <td class="centered"></td>
+                        </tr>
+                        <tr>
+                            <th class="multiline dark">Creuseur</th>
+                            <td class="centered multiline">-</td>
+                            <td class="centered multiline">-</td>
+                            <td class="centered multiline">{{workerData3}}</td>
+                        </tr>
                     </table>
                 </td>
             </tr></tbody></table>
@@ -88,7 +118,7 @@
 <script id="minesHoverPopup" type="text/html">
     <div class="popup">
         <h3>Site:</h3>
-        {{name}}
+        {{name}} - {{territoire}}
     </div>
 </script>
 
@@ -103,7 +133,7 @@
                     <table class="infotable" border="0" cellspacing="0" cellpadding="0">
                         <tr>
                             <th>Substance(s)</th>
-                            <td>{{{mineral1}}} {{{mineral2}}} {{{mineral3}}} {{{mineral4}}}</td>
+                            <td>{{{minerai}}} {{{mineral2}}} {{{mineral3}}} {{{mineral4}}}</td>
                         </tr>
                         <tr>
                             <th>Province</th>
@@ -165,6 +195,14 @@
     <div class="popup">
         <h3>Titre minier</h3>
         <table>
+            <tr>
+                <th>Code</th>
+                <td>{{{name}}}</td>
+            </tr>
+            <tr>
+                <th>Type</th>
+                <td>{{{type}}}</td>
+            </tr>
             <tr>
                 <th>Parties</th>
                 <td>{{{parties}}}</td>
